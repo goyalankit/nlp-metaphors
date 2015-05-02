@@ -5,6 +5,11 @@ def remove_tags(text):
     return TAG_RE.sub('', text)
 
 
+
+#datasets = {"all": { "train" :  { "main" : "subtask5b_en_allwords_train.txt", "data" : "all_train.txt", "label" : "all_label.txt" } ,"test" : {"main" : "subtask5b_en_lexsample_test.txt", "data" : "all_test.txt", "label" : "all_test_label"}}, {"lex_train" : { "main" : "subtask5b_en_lexsample_train.txt", "data" : "lex_train", "label" : "lex_label" }, "lext_test" : { "main" : "subtask5b_en_lexsample_test.txt", "data" : "lex_test.txt", "label" : "lex_text_label"} }}
+
+
+
 def clean_data():
     corpus_data = []
     corpus_target = []
