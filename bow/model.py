@@ -22,7 +22,6 @@ assert len(train_data) == len(label_data)
 # create bag of words for Training data
 count_vect = CountVectorizer()
 X_train_counts = count_vect.fit_transform(train_data)
-import pdb; pdb.set_trace()
 
 tfidf_transformer = TfidfTransformer()
 X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)

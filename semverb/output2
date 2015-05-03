@@ -1,0 +1,3 @@
+1	car	car	car	NN	NN	_	_	2	2	SBJ	SBJ	_	_	A0
+2	drinks	drink	drink	VBZ	VBZ	_	_	0	0	ROOT	ROOT	Y	drink.01	_
+3	gasoline	gasoline	gasoline	NN	NN	_	_	2	2	OBJ	OBJ	_	_	A1
