@@ -155,21 +155,21 @@ def agent_class(agents):
     if (avalue == "PRP"):
         if (akey.lower() in ['i', 'he', 'She', 'we', 'you']):
             return _RESTRICTION_SYNSETS['animate']
-        elif (akey.lower() in ['it']):
-            return _RESTRICTION_SYNSETS['machine']
+#        elif (akey.lower() in ['it']):
+#            return _RESTRICTION_SYNSETS['machine']
     #print "calling wordnet on %s" % akey
     wanalysis = WordnetAnalysis(akey.decode('utf8'))
     #print wanalysis
     return [wa.name() for wa in wanalysis]
 
 def patient_class(patients):
-    pkey = patients.key()[0]
+    pkey = patients.keys()[0]
     pvalue = patients.values()[0]
     if (pvalue == "PRP"):
         if (pkey.lower() in ['me', 'I', 'us', 'you', 'themselves', 'him', 'her']):
             return _RESTRICTION_SYNSETS['animate']
-        elif (pkey.lower() in ['it']):
-            return _RESTRICTION_SYNSETS['machine']
+#        elif (pkey.lower() in ['it']):
+#            return _RESTRICTION_SYNSETS['machine']
 
     wanalysis = WordnetAnalysis(pkey.decode('utf8'))
     return [wa.name() for wa in wanalysis]
@@ -180,41 +180,155 @@ all_keys = []
 def check_validity(current_srl, vindex, restrictions):
     agents, patients = getAgents(current_srl, vindex)
     actors = set(["Actor2", "Agent", "Actor", "Actor1", "Actor2"]).intersection(set(restrictions.keys()))
-    score = 4
-    #('and', [('+', 'animate')])
+    recipients = set(["Patient1", "Patient2", "Experiencer", "Recipient"]).intersection(set(restrictions.keys()))
+    score = 2
+    agent_satisfy = True
+    patient_satisfy = True
+    include_agent = False
+    include_patient = False
     if agents:
         if (len(actors)!=0):
             for actor in actors:
-                rest = restrictions[actor][1][0]
-                if (rest[0] == '+'):
-                    positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
-                    word_r = agent_class(agents)
-                    result = [True for wr in word_r if wr in positive_r]
-                    if len(result) != 0:
-                        score += 1
-                    else:
-                        score -= 1
-                elif (rest[0] == '-'):
-                    negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
-                    word_r = agent_class(agents)
-                    result = [True for wr in word_r if wr in negative_r]
-                    if len(result) != 0:
-                        score -= 1
-                    else:
-                        score += 1
+                restriction_op = restrictions[actor][0]
+
+                for arestrict in restrictions[actor][1]:
+                    rest = arestrict[1]
+                    if (rest[0] == '+'):
+                        positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                        word_r = agent_class(agents)
+                        result = [True for wr in word_r if wr in positive_r]
+                        if len(result) != 0:
+                            if restriction_op == 'and':
+                                # it's the first time. so initial value of agent_satisfy is bogus
+                                if not include_agent:
+                                    agent_satisfy = True
+                                    include_agent = True
+                                else:
+                                    agent_satisfy = (True and agent_satisfy)
+                            else:
+                                agent_satisfy = True
+                                include_agent = True
+
+                        else:
+                            if restriction_op == 'and':
+                                agent_satisfy = False
+                                include_agent = True
+                            else:
+                                if not include_agent:
+                                    agent_satisfy = False
+                                    include_agent = True
+                                else:
+                                    agent_satisfy = (False or agent_satisfy)
+
+                    elif (rest[0] == '-'):
+                        negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                        word_r = agent_class(agents)
+                        result = [True for wr in word_r if wr in negative_r]
+                        if len(result) != 0:
+                             if restriction_op == 'and':
+                                agent_satisfy = False
+                                include_agent = True
+                             else:
+                                if not include_agent:
+                                    agent_satisfy = False
+                                    include_agent = True
+                                else:
+                                    agent_satisfy = (False or agent_satisfy)
+                        else:
+                            if restriction_op == 'and':
+                                # it's the first time. so initial value of agent_satisfy is bogus
+                                if not include_agent:
+                                    agent_satisfy = True
+                                    include_agent = True
+                                else:
+                                    agent_satisfy = (True and agent_satisfy)
+                            else:
+                                agent_satisfy = True
+                                include_agent = True
+
+
+        if include_agent:
+            if agent_satisfy:
+                score += 1
+            else:
+                score -= 1
+        else:
+            pass
+
+
         if patients:
-            if (patients.values()[0] == "PRP"):
-                all_keys.append(patients.keys()[0])
+            if (len(recipients)!=0):
+                for recipient in recipients:
+                    restriction_op = restrictions[recipient][0]
+
+                    for arestrict in restrictions[recipient][1]:
+                        rest = arestrict[1]
+                        if (rest[0] == '+'):
+                            positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                            word_r = patient_class(patients)
+                            result = [True for wr in word_r if wr in positive_r]
+                            if len(result) != 0:
+                                if restriction_op == 'and':
+                                    # it's the first time. so initial value of patient_satisfy is bogus
+                                    if not include_patient:
+                                        patient_satisfy = True
+                                        include_patient = True
+                                    else:
+                                        patient_satisfy = (True and patient_satisfy)
+                                else:
+                                    patient_satisfy = True
+                                    include_patient = True
+
+                            else:
+                                if restriction_op == 'and':
+                                    patient_satisfy = False
+                                else:
+                                    if not include_patient:
+                                        patient_satisfy = False
+                                        include_patient = True
+                                    else:
+                                        patient_satisfy = (False or patient_satisfy)
+                                        include_patient = True
+
+                        elif (rest[0] == '-'):
+                            negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                            word_r = patient_class(patients)
+                            result = [True for wr in word_r if wr in negative_r]
+                            if len(result) != 0:
+                                 if restriction_op == 'and':
+                                    patient_satisfy = False
+                                    include_patient = True
+                                 else:
+                                    if not include_patient:
+                                        patient_satisfy = False
+                                        include_patient = True
+                                    else:
+                                        patient_satisfy = (False or patient_satisfy)
+                            else:
+                                if restriction_op == 'and':
+                                    # it's the first time. so initial value of patient_satisfy is bogus
+                                    if not include_patient:
+                                        patient_satisfy = True
+                                        include_patient = True
+                                    else:
+                                        patient_satisfy = (True and patient_satisfy)
+                                else:
+                                    patient_satisfy = True
+                                    include_patient = True
 
 
+            if include_patient:
+                if patient_satisfy:
+                    score += 1
+                else:
+                    score -= 1
+            else:
+                pass
 
+    #print restrictions
+    #print current_srl
+    #print "%s - %s" % (agents, patients)
     print score
-
-                #if agents and agents.values()[0] == "PRP":
-                #    all_keys.append(agents.keys())
-
-
-    pass
 
 
 def getAgents(current_srl, vindex):
@@ -224,12 +338,16 @@ def getAgents(current_srl, vindex):
     found_patient = False
     for i in xrange(vindex, 0, -1):
         if current_srl[i].find("A0") != -1:
+            if found_agent:
+                continue
             scurr_srl = current_srl[i].split('\t')
             agents[scurr_srl[1]] = scurr_srl[4]
             found_agent = True
             if (found_agent & found_patient):
                 return agents, patients
         elif current_srl[i].find("A1") != -1:
+            if found_patient:
+                continue
             scurr_srl = current_srl[i].split('\t')
             patients[scurr_srl[1]] = scurr_srl[4]
             found_patient = True
