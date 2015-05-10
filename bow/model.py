@@ -19,13 +19,36 @@ def create_feature_vec(file):
     return data_array.reshape(len(data_array), 1)
 
 
+def train(features, labels):
+    # Training
+    logistic_model_data = LogisticRegression(penalty="l2")
+    print "Training..."
+    logistic_model_data.fit(combined_train_featues, label_data)
+    print "Trained."
+    return logistic_model_data
 
+def test(model, features):
+    print "Testing..."
+    predicted = model.predict(combined_test_features)
+    print "Tested."
+    return predicted
+
+
+def get_stats(predicted, test_label):
+    print "---L2 Logistic Regression---"
+    print np.mean(predicted == test_label)
+    print(metrics.classification_report(test_label, predicted))
+    print "----------------------------"
+
+
+# ***********
+# Script Start
+# ***********
 
 train_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/train.txt")
 label_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/label.txt")
 test_data  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test.txt")
 test_label  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test_label.txt")
-
 
 # SRL features
 srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
@@ -41,39 +64,34 @@ tfidf_transformer = TfidfTransformer()
 X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
 print X_train_tfidf.shape
 
-# TRAINING: Merge Bag of words and SRL features
-combined_train_featues = hstack([X_train_tfidf, srl_train_features])
-
-# Training
-logistic_model_data = LogisticRegression(penalty="l2")
-print "Training..."
-logistic_model_data.fit(combined_train_featues, label_data)
-print "Trained."
-
 # Create bag of words for Testing data
 X_new_counts = count_vect.transform(test_data)
 X_new_tfidf = tfidf_transformer.transform(X_new_counts)
 print X_new_tfidf.shape
 
+
+# TRAINING: Merge Bag of words and SRL features
+combined_train_featues = hstack([X_train_tfidf, srl_train_features])
+combined_train_featues = X_train_tfidf
+
 # TESTING Merge Bag of words and SRL features
 combined_test_features = hstack([X_new_tfidf, srl_test_features])
+combined_test_features = X_new_tfidf
 
-print "Testing..."
-predicted = logistic_model_data.predict(combined_test_features)
-
-print "---L2 Logistic Regression---"
-print np.mean(predicted == test_label)
-print(metrics.classification_report(test_label, predicted))
+logistic_model = train(combined_train_featues, label_data)
+predicted      = test(logistic_model, combined_test_features)
+get_stats(predicted, test_label)
 
 
 # Check svm
-text_clf = Pipeline([('vect', CountVectorizer()),
-                     ('tfidf', TfidfTransformer()),
-                     ('clf', SGDClassifier(loss='hinge', penalty='l2',
-                         alpha=1e-3, n_iter=5, random_state=42)),
-                     ])
+#text_clf = Pipeline([('vect', CountVectorizer()),
+                     #('tfidf', TfidfTransformer()),
+                     #('clf', SGDClassifier(loss='hinge', penalty='l2',
+                         #alpha=1e-3, n_iter=5, random_state=42)),
+                     #])
 
-_ = text_clf.fit(train_data, label_data)
-predicted = text_clf.predict(test_data)
-print "--------SVM----------"
-print np.mean(predicted == test_label)     
+#_ = text_clf.fit(train_data, label_data)
+#predicted = text_clf.predict(test_data)
+#print "--------SVM----------"
+#print np.mean(predicted == test_label)     
+
