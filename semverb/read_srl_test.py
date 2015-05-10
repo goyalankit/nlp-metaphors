@@ -1,5 +1,6 @@
 from nltk.corpus import verbnet
 from nltk.stem.porter import PorterStemmer
+from nltk.corpus import wordnet as wn
 
 _PERSON_SYNSET = 'person.n.01'
 _MALE_SYNSETS = [
@@ -116,6 +117,14 @@ def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
     return lines
 
+def WordnetAnalysis(word):
+    snets = wn.synsets(word)
+    hyper = lambda s: s.hypernyms()
+    restrictions = []
+    for snet in snets:
+        restrictions.extend(list(snet.closure(hyper)))
+    return restrictions
+
 def GetVerbnetRestrictions(vnclass):
   role_restrictions = {}
 
@@ -140,12 +149,96 @@ def GetVerbnetRestrictions(vnclass):
   return role_restrictions
 
 
-all_keys = []
-def check_validity(current_srl, vindex, restrictions):
-    all_keys.extend(restrictions.keys())
-    pass
+def agent_class(agents):
+    akey   = agents.keys()[0]
+    avalue = agents.values()[0]
+    if (avalue == "PRP"):
+        if (akey.lower() in ['i', 'he', 'She', 'we', 'you']):
+            return _RESTRICTION_SYNSETS['animate']
+        elif (akey.lower() in ['it']):
+            return _RESTRICTION_SYNSETS['machine']
+    #print "calling wordnet on %s" % akey
+    wanalysis = WordnetAnalysis(akey.decode('utf8'))
+    #print wanalysis
+    return [wa.name() for wa in wanalysis]
+
+def patient_class(patients):
+    pkey = patients.key()[0]
+    pvalue = patients.values()[0]
+    if (pvalue == "PRP"):
+        if (pkey.lower() in ['me', 'I', 'us', 'you', 'themselves', 'him', 'her']):
+            return _RESTRICTION_SYNSETS['animate']
+        elif (pkey.lower() in ['it']):
+            return _RESTRICTION_SYNSETS['machine']
+
+    wanalysis = WordnetAnalysis(pkey.decode('utf8'))
+    return [wa.name() for wa in wanalysis]
 
 # ['Location', 'Patient1', 'Material', 'Patient', 'Source', 'Attribute', 'Destination', 'Actor2', 'Agent', 'Beneficiary', 'Instrument', 'Theme', 'Patient2', 'Experiencer', 'Actor1', 'Recipient', 'Actor', 'Asset']
+
+all_keys = []
+def check_validity(current_srl, vindex, restrictions):
+    agents, patients = getAgents(current_srl, vindex)
+    actors = set(["Actor2", "Agent", "Actor", "Actor1", "Actor2"]).intersection(set(restrictions.keys()))
+    score = 4
+    #('and', [('+', 'animate')])
+    if agents:
+        if (len(actors)!=0):
+            for actor in actors:
+                rest = restrictions[actor][1][0]
+                if (rest[0] == '+'):
+                    positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                    word_r = agent_class(agents)
+                    result = [True for wr in word_r if wr in positive_r]
+                    if len(result) != 0:
+                        score += 1
+                    else:
+                        score -= 1
+                elif (rest[0] == '-'):
+                    negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                    word_r = agent_class(agents)
+                    result = [True for wr in word_r if wr in negative_r]
+                    if len(result) != 0:
+                        score -= 1
+                    else:
+                        score += 1
+        if patients:
+            if (patients.values()[0] == "PRP"):
+                all_keys.append(patients.keys()[0])
+
+
+
+    print score
+
+                #if agents and agents.values()[0] == "PRP":
+                #    all_keys.append(agents.keys())
+
+
+    pass
+
+
+def getAgents(current_srl, vindex):
+    agents = {}
+    patients = {}
+    found_agent = False
+    found_patient = False
+    for i in xrange(vindex, 0, -1):
+        if current_srl[i].find("A0") != -1:
+            scurr_srl = current_srl[i].split('\t')
+            agents[scurr_srl[1]] = scurr_srl[4]
+            found_agent = True
+            if (found_agent & found_patient):
+                return agents, patients
+        elif current_srl[i].find("A1") != -1:
+            scurr_srl = current_srl[i].split('\t')
+            patients[scurr_srl[1]] = scurr_srl[4]
+            found_patient = True
+            if (found_agent & found_patient):
+                return agents, patients
+        else:
+            pass
+    return agents, patients
+
 
 def process_srl(srl_output, actual_data):
     porter_stemmer = PorterStemmer()
