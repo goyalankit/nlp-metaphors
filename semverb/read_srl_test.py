@@ -296,7 +296,6 @@ def check_validity(current_srl, vindex, restrictions):
 
                     if (p_satisfy and (p_neg_false == 0 or p_neg_false == 1) and (changed == True)):
                         score += 1
-                        print "changed nad p_satisfied"
                     elif (((not p_satisfy) and (changed == True))):
                         score -= 1
 
@@ -359,7 +358,7 @@ def process_srl(srl_output, actual_data):
                 continue
             mindex = [index for index, sl in enumerate(current_srl) if porter_stemmer.stem(mtoken) in sl.decode('utf8')]
             if not mindex:
-                print 0
+         #       print 0
                 continue
             token_count += 1
 
@@ -383,7 +382,8 @@ def process_srl(srl_output, actual_data):
         else:
             avg_line_score = line_score / (token_count - 1)
 
-        print "%s - %s - %s" % (sline[1], sline[2], line_score)
+#        print "%s - %s - %s" % (sline[1], sline[2], line_score)
+        print avg_line_score
         number += 1
 
 process_srl('srl_test.txt','../data/subtask5b_en_allwords_test.txt')

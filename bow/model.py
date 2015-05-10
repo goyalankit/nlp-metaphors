@@ -6,16 +6,30 @@ import numpy as np
 from sklearn import metrics
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
+from scipy.sparse import coo_matrix, hstack
 
 #helper methods
 def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
     return lines
 
+def create_feature_vec(file):
+    data = create_vector(file)
+    data_array = np.array(data, dtype='float64')
+    return data_array.reshape(len(data_array), 1)
+
+
+
+
 train_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/train.txt")
 label_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/label.txt")
 test_data  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test.txt")
 test_label  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test_label.txt")
+
+
+# SRL features
+srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
+srl_test_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_test_vec.txt")
 
 assert len(train_data) == len(label_data)
 
@@ -27,10 +41,13 @@ tfidf_transformer = TfidfTransformer()
 X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
 print X_train_tfidf.shape
 
+# TRAINING: Merge Bag of words and SRL features
+combined_train_featues = hstack([X_train_tfidf, srl_train_features])
+
 # Training
 logistic_model_data = LogisticRegression(penalty="l2")
 print "Training..."
-logistic_model_data.fit(X_train_tfidf, label_data)
+logistic_model_data.fit(combined_train_featues, label_data)
 print "Trained."
 
 # Create bag of words for Testing data
@@ -38,8 +55,11 @@ X_new_counts = count_vect.transform(test_data)
 X_new_tfidf = tfidf_transformer.transform(X_new_counts)
 print X_new_tfidf.shape
 
+# TESTING Merge Bag of words and SRL features
+combined_test_features = hstack([X_new_tfidf, srl_test_features])
+
 print "Testing..."
-predicted = logistic_model_data.predict(X_new_tfidf)
+predicted = logistic_model_data.predict(combined_test_features)
 
 print "---L2 Logistic Regression---"
 print np.mean(predicted == test_label)
