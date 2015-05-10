@@ -1,3 +1,4 @@
+from __future__ import division
 from nltk.corpus import verbnet
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import wordnet as wn
@@ -25,7 +26,7 @@ _RESTRICTION_SYNSETS = {
                'item.n.03',
                'assembly.n.05',
                'artifact.n.01']),
-  'animate': ( ['living_thing.n.01'],
+  'animate': ( ['living_thing.n.01', 'biological_group.n.01'],
                ['abstraction.n.06',
                 'natural_object.n.01',
                 'item.n.03',
@@ -153,7 +154,7 @@ def agent_class(agents):
     akey   = agents.keys()[0]
     avalue = agents.values()[0]
     if (avalue == "PRP"):
-        if (akey.lower() in ['i', 'he', 'She', 'we', 'you']):
+        if (akey.lower() in ['i', 'he', 'she', 'we', 'you']):
             return _RESTRICTION_SYNSETS['animate']
 #        elif (akey.lower() in ['it']):
 #            return _RESTRICTION_SYNSETS['machine']
@@ -166,7 +167,7 @@ def patient_class(patients):
     pkey = patients.keys()[0]
     pvalue = patients.values()[0]
     if (pvalue == "PRP"):
-        if (pkey.lower() in ['me', 'I', 'us', 'you', 'themselves', 'him', 'her']):
+        if (pkey.lower() in ['me', 'i', 'us', 'you', 'themselves', 'him', 'her']):
             return _RESTRICTION_SYNSETS['animate']
 #        elif (pkey.lower() in ['it']):
 #            return _RESTRICTION_SYNSETS['machine']
@@ -181,154 +182,129 @@ def check_validity(current_srl, vindex, restrictions):
     agents, patients = getAgents(current_srl, vindex)
     actors = set(["Actor2", "Agent", "Actor", "Actor1", "Actor2"]).intersection(set(restrictions.keys()))
     recipients = set(["Patient1", "Patient2", "Experiencer", "Recipient"]).intersection(set(restrictions.keys()))
-    score = 2
-    agent_satisfy = True
-    patient_satisfy = True
-    include_agent = False
-    include_patient = False
+    score = 3
+    #agent_satisfy = True
+    #patient_satisfy = True
+    #include_agent = False
+    #include_patient = False
+    a_satisfy = False
     if agents:
         if (len(actors)!=0):
             for actor in actors:
                 restriction_op = restrictions[actor][0]
+                neg_false = 0
+                a_satisfy = False
+                changed = False
 
                 for arestrict in restrictions[actor][1]:
-                    rest = arestrict[1]
+                    rest = arestrict
                     if (rest[0] == '+'):
                         positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
                         word_r = agent_class(agents)
-                        result = [True for wr in word_r if wr in positive_r]
-                        if len(result) != 0:
-                            if restriction_op == 'and':
-                                # it's the first time. so initial value of agent_satisfy is bogus
-                                if not include_agent:
-                                    agent_satisfy = True
-                                    include_agent = True
-                                else:
-                                    agent_satisfy = (True and agent_satisfy)
-                            else:
-                                agent_satisfy = True
-                                include_agent = True
-
+                        if not word_r:
+                            continue
+                        nested = any(isinstance(i, list) for i in word_r)
+                        if nested:
+                            result = [True for wr in word_r[0] if wr in positive_r]
                         else:
-                            if restriction_op == 'and':
-                                agent_satisfy = False
-                                include_agent = True
-                            else:
-                                if not include_agent:
-                                    agent_satisfy = False
-                                    include_agent = True
-                                else:
-                                    agent_satisfy = (False or agent_satisfy)
+                            result = [True for wr in word_r if wr in positive_r]
+
+                        if len(result) != 0:
+                            a_satisfy = True
+                            changed = True
+                        else:
+                            changed = True
+
 
                     elif (rest[0] == '-'):
+                        if neg_false == 0:
+                            a_satisfy = True
+
                         negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
                         word_r = agent_class(agents)
-                        result = [True for wr in word_r if wr in negative_r]
-                        if len(result) != 0:
-                             if restriction_op == 'and':
-                                agent_satisfy = False
-                                include_agent = True
-                             else:
-                                if not include_agent:
-                                    agent_satisfy = False
-                                    include_agent = True
-                                else:
-                                    agent_satisfy = (False or agent_satisfy)
+                        if not word_r:
+                            continue
+
+                        nested = any(isinstance(i, list) for i in word_r)
+                        if nested:
+                            result = [True for wr in word_r[0] if wr in negative_r]
                         else:
-                            if restriction_op == 'and':
-                                # it's the first time. so initial value of agent_satisfy is bogus
-                                if not include_agent:
-                                    agent_satisfy = True
-                                    include_agent = True
-                                else:
-                                    agent_satisfy = (True and agent_satisfy)
-                            else:
-                                agent_satisfy = True
-                                include_agent = True
+                            result = [True for wr in word_r if wr in negative_r]
 
+                        if len(result) != 0:
+                            neg_false = 1
+                            a_satisfy = False
+                            changed = True
+                        else:
+                            changed = True
 
-        if include_agent:
-            if agent_satisfy:
-                score += 1
-            else:
-                score -= 1
-        else:
-            pass
+                if (a_satisfy and (neg_false == 0 or neg_false == 1) and (changed == True)):
+                    score += 1
+                elif (((not a_satisfy) and (changed == True))):
+                    score -= 1
 
-
+        p_satisfy = False
         if patients:
             if (len(recipients)!=0):
                 for recipient in recipients:
                     restriction_op = restrictions[recipient][0]
+
+                    p_neg_false = 0
+                    p_satisfy = False
+                    changed = False
 
                     for arestrict in restrictions[recipient][1]:
                         rest = arestrict[1]
                         if (rest[0] == '+'):
                             positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
                             word_r = patient_class(patients)
-                            result = [True for wr in word_r if wr in positive_r]
-                            if len(result) != 0:
-                                if restriction_op == 'and':
-                                    # it's the first time. so initial value of patient_satisfy is bogus
-                                    if not include_patient:
-                                        patient_satisfy = True
-                                        include_patient = True
-                                    else:
-                                        patient_satisfy = (True and patient_satisfy)
-                                else:
-                                    patient_satisfy = True
-                                    include_patient = True
-
+                            if not word_r:
+                                continue
+                            nested = any(isinstance(i, list) for i in word_r)
+                            if nested:
+                                result = [True for wr in word_r[0] if wr in positive_r]
                             else:
-                                if restriction_op == 'and':
-                                    patient_satisfy = False
-                                else:
-                                    if not include_patient:
-                                        patient_satisfy = False
-                                        include_patient = True
-                                    else:
-                                        patient_satisfy = (False or patient_satisfy)
-                                        include_patient = True
+                                result = [True for wr in word_r if wr in positive_r]
+
+                            if len(result) != 0:
+                                p_satisfy = True
+                                changed = True
+                            else:
+                                changed = True
 
                         elif (rest[0] == '-'):
+                            if (p_neg_false == 0):
+                                a_satisfy = True
+
                             negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
                             word_r = patient_class(patients)
-                            result = [True for wr in word_r if wr in negative_r]
-                            if len(result) != 0:
-                                 if restriction_op == 'and':
-                                    patient_satisfy = False
-                                    include_patient = True
-                                 else:
-                                    if not include_patient:
-                                        patient_satisfy = False
-                                        include_patient = True
-                                    else:
-                                        patient_satisfy = (False or patient_satisfy)
+                            if not word_r:
+                                continue
+                            nested = any(isinstance(i, list) for i in word_r)
+                            if nested:
+                                result = [True for wr in word_r[0] if wr in negative_r]
                             else:
-                                if restriction_op == 'and':
-                                    # it's the first time. so initial value of patient_satisfy is bogus
-                                    if not include_patient:
-                                        patient_satisfy = True
-                                        include_patient = True
-                                    else:
-                                        patient_satisfy = (True and patient_satisfy)
-                                else:
-                                    patient_satisfy = True
-                                    include_patient = True
+                                result = [True for wr in word_r if wr in negative_r]
+
+                            if len(result) != 0:
+                                p_neg_false == 1
+                                p_satisfy = False
+                                changed = True
+                            else:
+                                changed = True
 
 
-            if include_patient:
-                if patient_satisfy:
-                    score += 1
-                else:
-                    score -= 1
-            else:
-                pass
+                    if (p_satisfy and (p_neg_false == 0 or p_neg_false == 1) and (changed == True)):
+                        score += 1
+                        print "changed nad p_satisfied"
+                    elif (((not p_satisfy) and (changed == True))):
+                        score -= 1
 
     #print restrictions
     #print current_srl
     #print "%s - %s" % (agents, patients)
-    print score
+    #print score
+    return score
 
 
 def getAgents(current_srl, vindex):
@@ -375,20 +351,39 @@ def process_srl(srl_output, actual_data):
         current_srl = srl_list[number].split("\n") # semantic role labeling of give sentece
 
         mtokens = metaphor.split(" ")
+        line_score = 0
+        token_count = 1
         for mtoken in mtokens:
             vnclasses = verbnet.classids(mtoken)
             if not vnclasses:
                 continue
             mindex = [index for index, sl in enumerate(current_srl) if porter_stemmer.stem(mtoken) in sl.decode('utf8')]
             if not mindex:
-                print line
+                print 0
                 continue
+            token_count += 1
+
+            class_score = 0
+            class_count = 1
             for vn in vnclasses:
                 v=verbnet.vnclass(vn)
                 restrictions = GetVerbnetRestrictions(v)
-                check_validity(current_srl, mindex[0], restrictions)
+                if restrictions:
+                    class_score = check_validity(current_srl, mindex[0], restrictions)
+                    class_count += 1
+            if class_count < 2:
+                avg_class_score = class_score / class_count
+            else:
+                avg_class_score = class_score / (class_count - 1)
+
+            line_score += avg_class_score
+            token_count += 1
+        if token_count < 2:
+            avg_line_score = line_score / token_count
+        else:
+            avg_line_score = line_score / (token_count - 1)
+
+        print "%s - %s - %s" % (sline[1], sline[2], line_score)
         number += 1
 
 process_srl('srl_test.txt','../data/subtask5b_en_allwords_test.txt')
-import pdb; pdb.set_trace()
-
