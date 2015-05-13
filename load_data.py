@@ -11,6 +11,8 @@ lemmatize = WordNetLemmatizer().lemmatize
 
 TRAIN_FILE = "data/subtask5b_en_allwords_train.txt"
 TEST_FILE  = "data/subtask5b_en_allwords_test.txt"
+TEST_FILE2 = "data/subtask5b_en_lexsample_test.txt"
+TEST_FILE3 = "data/subtask5b_en_lexsample_train.txt"
 
 TAG_RE = re.compile(r'<[^>]+>')
 def remove_tags(text):
@@ -81,10 +83,4 @@ def data(filename, label, force_reload=False):
         entries = load_data(filename)
         pickle.dump(entries, open(pklfile, "wb"))
     return entries
-
-def get_train_data(force_reload=False):
-    return data(TRAIN_FILE, 'training', force_reload)
-
-def get_test_data(force_reload=False):
-    return data(TEST_FILE, 'testing', force_reload)
 
