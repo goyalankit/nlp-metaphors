@@ -4,7 +4,9 @@ from nltk.stem import WordNetLemmatizer
 from itertools import combinations
 import numpy as np
 
-from load_data import get_train_data
+from load_data import (data,
+                      TRAIN_FILE, TEST_FILE,
+                      TEST_FILE2, TEST_FILE3)
 
 sw = stopwords.words('english')
 
@@ -42,10 +44,9 @@ def word_similarity(w1, w2, pos1=None, pos2=None):
     words2 = wordnet.synsets(w2,pos2) # ONLY USING ONE WORD
     if len(words1)==0 or len(words2)==0:
         return 0, 0, 0
-    word1 = words1[0]
-    word2 = words2[0]
+    #word1 = words1[0]
+    #word2 = words2[0]
     distances = []
-    """
     for word1 in words1:
         for word2 in words2:
             dist = word1.wup_similarity(word2)
@@ -57,17 +58,18 @@ def word_similarity(w1, w2, pos1=None, pos2=None):
     if dist is not None:
         #print word1, word2, dist
         distances.append(dist)
+    """
     return distances
 
-def sentence_similarity(entry):
-    sentence = prep_words(entry.sentence_lemma)
+def sentence_similarity(sentence):
+    sentence = prep_words(sentence)
     values = []
     for w1,w2 in combinations(sentence, 2):
             # note: using MAX similarity
             vals = word_similarity(w1,w2)
             if len(vals) > 0:
                 values.append(np.power(np.nanmax(vals),2))
-    return values
+    return np.nanmean(values)
 
 def phrase_similarity(entry):
     phrase  = prep_words(entry.phrase_lemma)
@@ -83,15 +85,17 @@ def phrase_similarity(entry):
     return np.nanmean(values)
 
 def mean_similarities(entry):
-    vals = phrase_similarity(entry)
-    ss   = sentence_similarity(entry)
-    ps   = sentence_similarity(entry)
-    return vals, np.nanmean(ss), np.nanmean(ps) #/np.sqrt(np.nanstd(vals))
+    phrase_context = phrase_similarity(entry)
+    within_context = sentence_similarity(entry.context_lemma)
+    within_phrase  = sentence_similarity(entry.phrase_lemma)
+    return phrase_context, within_context, within_phrase
 
-def test():
-    for line in get_train_data():
+def make_features(inputfile, label):
+    featurefile = '{}.similarity.txt'.format(inputfile)
+    f = open(featurefile, 'wb')
+    for line in data(inputfile, label):
         sim = mean_similarities(line)
-        print "{} ({}) - {}".format(line.phrase, line.figurative, sim)
+        print line.phrase, sim
+        f.write('{}\t{}\t{}\n'.format(sim[0],sim[1],sim[2]))
+    f.close()
 
-if __name__ == "__main__":
-    test()
