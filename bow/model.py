@@ -50,9 +50,30 @@ def get_stats(predicted, test_label):
 # Script Start
 # ***********
 
+LEX = True
+USE_SRL = False
+
+if LEX == True:
+    train_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_train.txt")
+    label_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_train_label.txt")
+    test_data  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_test.txt")
+    test_label  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_test_label.txt")
+else:
+    train_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/train.txt")
+    label_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/label.txt")
+    test_data  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test.txt")
+    test_label  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test_label.txt")
+
 # SRL features
-srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
-srl_test_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_test_vec.txt")
+if USE_SRL:
+    if LEX == True:
+        srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
+        srl_test_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_test_vec.txt")
+    else:
+        srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
+        srl_test_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_test_vec.txt")
+else:
+    pass
 
 assert len(train_data) == len(label_data)
 
@@ -71,12 +92,16 @@ print X_new_tfidf.shape
 
 
 # TRAINING: Merge Bag of words and SRL features
-combined_train_featues = hstack([X_train_tfidf, srl_train_features])
-combined_train_featues = X_train_tfidf
+if USE_SRL:
+    combined_train_featues = hstack([X_train_tfidf, srl_train_features])
+else:
+    combined_train_featues = X_train_tfidf
 
 # TESTING Merge Bag of words and SRL features
-combined_test_features = hstack([X_new_tfidf, srl_test_features])
-combined_test_features = X_new_tfidf
+if USE_SRL:
+    combined_test_features = hstack([X_new_tfidf, srl_test_features])
+else:
+    combined_test_features = X_new_tfidf
 
 logistic_model = train(combined_train_featues, label_data)
 predicted      = test(logistic_model, combined_test_features)

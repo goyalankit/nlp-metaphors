@@ -14,9 +14,9 @@ def clean_data():
     corpus_data = []
     corpus_target = []
     print "Reading data..."
-    corpus_file = open ("/Users/ankit/code/nlp-metaphors/data/subtask5b_en_allwords_test.txt", "r")
-    data_file   = open ("/Users/ankit/code/nlp-metaphors/data/bow/test.txt", "w")
-    label_file  = open ("/Users/ankit/code/nlp-metaphors/data/bow/test_label.txt", "w")
+    corpus_file = open ("/Users/ankit/code/nlp-metaphors/data/subtask5b_en_lexsample_test.txt", "r")
+    data_file   = open ("/Users/ankit/code/nlp-metaphors/data/bow/lex_test.txt", "w")
+    label_file  = open ("/Users/ankit/code/nlp-metaphors/data/bow/lex_test_label.txt", "w")
 
     print "Cleaning data..."
     for line in corpus_file:
