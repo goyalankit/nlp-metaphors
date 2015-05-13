@@ -1,5 +1,7 @@
+from __future__ import division
 from nltk.corpus import verbnet
 from nltk.stem.porter import PorterStemmer
+from nltk.corpus import wordnet as wn
 
 _PERSON_SYNSET = 'person.n.01'
 _MALE_SYNSETS = [
@@ -24,7 +26,7 @@ _RESTRICTION_SYNSETS = {
                'item.n.03',
                'assembly.n.05',
                'artifact.n.01']),
-  'animate': ( ['living_thing.n.01'],
+  'animate': ( ['living_thing.n.01', 'biological_group.n.01'],
                ['abstraction.n.06',
                 'natural_object.n.01',
                 'item.n.03',
@@ -116,6 +118,14 @@ def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
     return lines
 
+def WordnetAnalysis(word):
+    snets = wn.synsets(word)
+    hyper = lambda s: s.hypernyms()
+    restrictions = []
+    for snet in snets:
+        restrictions.extend(list(snet.closure(hyper)))
+    return restrictions
+
 def GetVerbnetRestrictions(vnclass):
   role_restrictions = {}
 
@@ -140,12 +150,188 @@ def GetVerbnetRestrictions(vnclass):
   return role_restrictions
 
 
-all_keys = []
-def check_validity(current_srl, vindex, restrictions):
-    all_keys.extend(restrictions.keys())
-    pass
+def agent_class(agents):
+    akey   = agents.keys()[0]
+    avalue = agents.values()[0]
+    if (avalue == "PRP"):
+        if (akey.lower() in ['i', 'he', 'she', 'we', 'you']):
+            return _RESTRICTION_SYNSETS['animate']
+#        elif (akey.lower() in ['it']):
+#            return _RESTRICTION_SYNSETS['machine']
+    #print "calling wordnet on %s" % akey
+    wanalysis = WordnetAnalysis(akey.decode('utf8'))
+    #print wanalysis
+    return [wa.name() for wa in wanalysis]
+
+def patient_class(patients):
+    pkey = patients.keys()[0]
+    pvalue = patients.values()[0]
+    if (pvalue == "PRP"):
+        if (pkey.lower() in ['me', 'i', 'us', 'you', 'themselves', 'him', 'her']):
+            return _RESTRICTION_SYNSETS['animate']
+#        elif (pkey.lower() in ['it']):
+#            return _RESTRICTION_SYNSETS['machine']
+
+    wanalysis = WordnetAnalysis(pkey.decode('utf8'))
+    return [wa.name() for wa in wanalysis]
 
 # ['Location', 'Patient1', 'Material', 'Patient', 'Source', 'Attribute', 'Destination', 'Actor2', 'Agent', 'Beneficiary', 'Instrument', 'Theme', 'Patient2', 'Experiencer', 'Actor1', 'Recipient', 'Actor', 'Asset']
+
+all_keys = []
+def check_validity(current_srl, vindex, restrictions):
+    agents, patients = getAgents(current_srl, vindex)
+    actors = set(["Actor2", "Agent", "Actor", "Actor1", "Actor2"]).intersection(set(restrictions.keys()))
+    recipients = set(["Patient1", "Patient2", "Experiencer", "Recipient"]).intersection(set(restrictions.keys()))
+    score = 3
+    #agent_satisfy = True
+    #patient_satisfy = True
+    #include_agent = False
+    #include_patient = False
+    a_satisfy = False
+    if agents:
+        if (len(actors)!=0):
+            for actor in actors:
+                restriction_op = restrictions[actor][0]
+                neg_false = 0
+                a_satisfy = False
+                changed = False
+
+                for arestrict in restrictions[actor][1]:
+                    rest = arestrict
+                    if (rest[0] == '+'):
+                        positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                        word_r = agent_class(agents)
+                        if not word_r:
+                            continue
+                        nested = any(isinstance(i, list) for i in word_r)
+                        if nested:
+                            result = [True for wr in word_r[0] if wr in positive_r]
+                        else:
+                            result = [True for wr in word_r if wr in positive_r]
+
+                        if len(result) != 0:
+                            a_satisfy = True
+                            changed = True
+                        else:
+                            changed = True
+
+
+                    elif (rest[0] == '-'):
+                        if neg_false == 0:
+                            a_satisfy = True
+
+                        negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                        word_r = agent_class(agents)
+                        if not word_r:
+                            continue
+
+                        nested = any(isinstance(i, list) for i in word_r)
+                        if nested:
+                            result = [True for wr in word_r[0] if wr in negative_r]
+                        else:
+                            result = [True for wr in word_r if wr in negative_r]
+
+                        if len(result) != 0:
+                            neg_false = 1
+                            a_satisfy = False
+                            changed = True
+                        else:
+                            changed = True
+
+                if (a_satisfy and (neg_false == 0 or neg_false == 1) and (changed == True)):
+                    score += 1
+                elif (((not a_satisfy) and (changed == True))):
+                    score -= 1
+
+        p_satisfy = False
+        if patients:
+            if (len(recipients)!=0):
+                for recipient in recipients:
+                    restriction_op = restrictions[recipient][0]
+
+                    p_neg_false = 0
+                    p_satisfy = False
+                    changed = False
+
+                    for arestrict in restrictions[recipient][1]:
+                        rest = arestrict[1]
+                        if (rest[0] == '+'):
+                            positive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                            word_r = patient_class(patients)
+                            if not word_r:
+                                continue
+                            nested = any(isinstance(i, list) for i in word_r)
+                            if nested:
+                                result = [True for wr in word_r[0] if wr in positive_r]
+                            else:
+                                result = [True for wr in word_r if wr in positive_r]
+
+                            if len(result) != 0:
+                                p_satisfy = True
+                                changed = True
+                            else:
+                                changed = True
+
+                        elif (rest[0] == '-'):
+                            if (p_neg_false == 0):
+                                a_satisfy = True
+
+                            negatiive_r = _RESTRICTION_SYNSETS[rest[1]][0]
+                            word_r = patient_class(patients)
+                            if not word_r:
+                                continue
+                            nested = any(isinstance(i, list) for i in word_r)
+                            if nested:
+                                result = [True for wr in word_r[0] if wr in negative_r]
+                            else:
+                                result = [True for wr in word_r if wr in negative_r]
+
+                            if len(result) != 0:
+                                p_neg_false == 1
+                                p_satisfy = False
+                                changed = True
+                            else:
+                                changed = True
+
+
+                    if (p_satisfy and (p_neg_false == 0 or p_neg_false == 1) and (changed == True)):
+                        score += 1
+                    elif (((not p_satisfy) and (changed == True))):
+                        score -= 1
+
+    #print restrictions
+    #print current_srl
+    #print "%s - %s" % (agents, patients)
+    #print score
+    return score
+
+
+def getAgents(current_srl, vindex):
+    agents = {}
+    patients = {}
+    found_agent = False
+    found_patient = False
+    for i in xrange(vindex, 0, -1):
+        if current_srl[i].find("A0") != -1:
+            if found_agent:
+                continue
+            scurr_srl = current_srl[i].split('\t')
+            agents[scurr_srl[1]] = scurr_srl[4]
+            found_agent = True
+            if (found_agent & found_patient):
+                return agents, patients
+        elif current_srl[i].find("A1") != -1:
+            if found_patient:
+                continue
+            scurr_srl = current_srl[i].split('\t')
+            patients[scurr_srl[1]] = scurr_srl[4]
+            found_patient = True
+            if (found_agent & found_patient):
+                return agents, patients
+        else:
+            pass
+    return agents, patients
+
 
 def process_srl(srl_output, actual_data):
     porter_stemmer = PorterStemmer()
@@ -164,20 +350,40 @@ def process_srl(srl_output, actual_data):
         current_srl = srl_list[number].split("\n") # semantic role labeling of give sentece
 
         mtokens = metaphor.split(" ")
+        line_score = 0
+        token_count = 1
         for mtoken in mtokens:
             vnclasses = verbnet.classids(mtoken)
             if not vnclasses:
                 continue
             mindex = [index for index, sl in enumerate(current_srl) if porter_stemmer.stem(mtoken) in sl.decode('utf8')]
             if not mindex:
-                print line
+         #       print 0
                 continue
+            token_count += 1
+
+            class_score = 0
+            class_count = 1
             for vn in vnclasses:
                 v=verbnet.vnclass(vn)
                 restrictions = GetVerbnetRestrictions(v)
-                check_validity(current_srl, mindex[0], restrictions)
+                if restrictions:
+                    class_score = check_validity(current_srl, mindex[0], restrictions)
+                    class_count += 1
+            if class_count < 2:
+                avg_class_score = class_score / class_count
+            else:
+                avg_class_score = class_score / (class_count - 1)
+
+            line_score += avg_class_score
+            token_count += 1
+        if token_count < 2:
+            avg_line_score = line_score / token_count
+        else:
+            avg_line_score = line_score / (token_count - 1)
+
+#        print "%s - %s - %s" % (sline[1], sline[2], line_score)
+        print avg_line_score
         number += 1
 
 process_srl('srl_test.txt','../data/subtask5b_en_allwords_test.txt')
-import pdb; pdb.set_trace()
-

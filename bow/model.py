@@ -6,6 +6,7 @@ import numpy as np
 from sklearn import metrics
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
+from scipy.sparse import coo_matrix, hstack
 
 #helper methods
 def create_vector(file):
@@ -17,6 +18,42 @@ label_data = create_vector("../data/bow/label.txt")
 test_data  = create_vector("../data/bow/test.txt")
 test_label = create_vector("../data/bow/test_label.txt")
 
+def create_feature_vec(file):
+    data = create_vector(file)
+    data_array = np.array(data, dtype='float64')
+    return data_array.reshape(len(data_array), 1)
+
+
+def train(features, labels):
+    # Training
+    logistic_model_data = LogisticRegression(penalty="l2")
+    print "Training..."
+    logistic_model_data.fit(combined_train_featues, label_data)
+    print "Trained."
+    return logistic_model_data
+
+def test(model, features):
+    print "Testing..."
+    predicted = model.predict(combined_test_features)
+    print "Tested."
+    return predicted
+
+
+def get_stats(predicted, test_label):
+    print "---L2 Logistic Regression---"
+    print np.mean(predicted == test_label)
+    print(metrics.classification_report(test_label, predicted))
+    print "----------------------------"
+
+
+# ***********
+# Script Start
+# ***********
+
+# SRL features
+srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
+srl_test_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_test_vec.txt")
+
 assert len(train_data) == len(label_data)
 
 # create bag of words for Training data
@@ -27,33 +64,34 @@ tfidf_transformer = TfidfTransformer()
 X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
 print X_train_tfidf.shape
 
-# Training
-logistic_model_data = LogisticRegression(penalty="l2")
-print "Training..."
-logistic_model_data.fit(X_train_tfidf, label_data)
-print "Trained."
-
 # Create bag of words for Testing data
 X_new_counts = count_vect.transform(test_data)
 X_new_tfidf = tfidf_transformer.transform(X_new_counts)
 print X_new_tfidf.shape
 
-print "Testing..."
-predicted = logistic_model_data.predict(X_new_tfidf)
 
-print "---L2 Logistic Regression---"
-print np.mean(predicted == test_label)
-print(metrics.classification_report(test_label, predicted))
+# TRAINING: Merge Bag of words and SRL features
+combined_train_featues = hstack([X_train_tfidf, srl_train_features])
+combined_train_featues = X_train_tfidf
+
+# TESTING Merge Bag of words and SRL features
+combined_test_features = hstack([X_new_tfidf, srl_test_features])
+combined_test_features = X_new_tfidf
+
+logistic_model = train(combined_train_featues, label_data)
+predicted      = test(logistic_model, combined_test_features)
+get_stats(predicted, test_label)
 
 
 # Check svm
-text_clf = Pipeline([('vect', CountVectorizer()),
-                     ('tfidf', TfidfTransformer()),
-                     ('clf', SGDClassifier(loss='hinge', penalty='l2',
-                         alpha=1e-3, n_iter=5, random_state=42)),
-                     ])
+#text_clf = Pipeline([('vect', CountVectorizer()),
+                     #('tfidf', TfidfTransformer()),
+                     #('clf', SGDClassifier(loss='hinge', penalty='l2',
+                         #alpha=1e-3, n_iter=5, random_state=42)),
+                     #])
 
-_ = text_clf.fit(train_data, label_data)
-predicted = text_clf.predict(test_data)
-print "--------SVM----------"
-print np.mean(predicted == test_label)     
+#_ = text_clf.fit(train_data, label_data)
+#predicted = text_clf.predict(test_data)
+#print "--------SVM----------"
+#print np.mean(predicted == test_label)     
+
