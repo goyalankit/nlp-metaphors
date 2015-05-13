@@ -352,7 +352,6 @@ def process_srl(srl_output, actual_data, just_phrases):
     [srl_list.append(line.strip()) for line in srl_output]
 
     phrase_sentence = create_vector(just_phrases)
-    import pdb; pdb.set_trace()
 
     corpus_data = create_vector(actual_data)
     number = 0
@@ -367,7 +366,7 @@ def process_srl(srl_output, actual_data, just_phrases):
 
         #mtokens = metaphor.split(" ")
         mtokens_t = word_tokenize(phrase_sentence[number])
-        mtokens_t = [w for w in mtokens_t if not w in nlcor.stopwords.words('english')]
+        mtokens_t = [w for w in mtokens_t if not w.decode('utf8') in nlcor.stopwords.words('english')]
         mtokens   = filter(lambda word: word not in ",-'", mtokens_t)
         sane_mt = [mt.decode('utf8') for mt in mtokens]
         pos_mtokens = nltk.pos_tag(sane_mt)
@@ -376,8 +375,8 @@ def process_srl(srl_output, actual_data, just_phrases):
         line_score = 0
         token_count = 1
         number += 1
-        print "phrase tokens: %s" % mtokens_t
-        print "only verbs: %s" % only_verbs
+        #print "phrase tokens: %s" % mtokens_t
+        #print "only verbs: %s" % only_verbs
 
         for mtoken in only_verbs:
             vnclasses = verbnet.classids(mtoken)
@@ -385,7 +384,7 @@ def process_srl(srl_output, actual_data, just_phrases):
                 vnclasses = verbnet.classids(wn_lem.lemmatize(mtoken))
                 if not vnclasses:
                     continue
-            print "vnclasses: %s" % vnclasses
+            #print "vnclasses: %s" % vnclasses
 
             mindex = [index for index, sl in enumerate(current_srl) if porter_stemmer.stem(mtoken) in sl.decode('utf8')]
             if not mindex:
@@ -395,22 +394,27 @@ def process_srl(srl_output, actual_data, just_phrases):
 
             class_score = 0
             class_count = 1
-            print '----- %s -----' % mtoken
+            #print '----- %s -----' % mtoken
             for vn in vnclasses:
                 v=verbnet.vnclass(vn)
-                restrictions = GetVerbnetRestrictions(v)
+                try:
+                    restrictions = GetVerbnetRestrictions(v)
+                except:
+                    continue
+
              #   print restrictions
                 if restrictions:
                     class_score = check_validity(current_srl, mindex[0], restrictions)
                     class_count += 1
-                    print class_score
+                    #print class_score
                 else:
-                    print "No restrictions for %s" % vn
+                    #print "No restrictions for %s" % vn
+                    pass
             if class_count < 2:
                 avg_class_score = class_score / class_count
             else:
                 avg_class_score = class_score / (class_count - 1)
-            print '---------------'
+            #print '---------------'
 
             line_score += avg_class_score
             token_count += 1
@@ -422,4 +426,8 @@ def process_srl(srl_output, actual_data, just_phrases):
 #        print "%s - %s - %s" % (sline[1], sline[2], line_score)
         print avg_line_score
 
-process_srl('srl_train.txt','../data/subtask5b_en_allwords_train.txt', '../data/semverb/just_sentences_with_phrases_train.txt')
+#process_srl('srl_train.txt','../data/subtask5b_en_allwords_train.txt', '../data/semverb/just_sentences_with_phrases_train.txt')
+#process_srl('srl_test.txt','../data/subtask5b_en_allwords_test.txt', '../data/semverb/just_sentences_with_phrases_test.txt')
+
+process_srl('../data/semverb/srl_lex_test.txt','../data/subtask5b_en_lexsample_test.txt', '../data/semverb/just_sentences_with_phrases_test_lex.txt')
+#process_srl('../data/semverb/srl_lex_train.txt','../data/subtask5b_en_lexsample_train.txt', '../data/semverb/just_sentences_with_phrases_train_lex.txt')

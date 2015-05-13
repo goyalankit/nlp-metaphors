@@ -5,9 +5,11 @@ TAG_RE = re.compile(r'<[^>]+>')
 def remove_tags(text):
     return TAG_RE.sub('', text)
 
-file = '/Users/ankit/code/nlp-metaphors/data/subtask5b_en_allwords_test.txt'
+#file = '/Users/ankit/code/nlp-metaphors/data/subtask5b_en_allwords_test.txt'
+file = '/Users/ankit/code/nlp-metaphors/data/subtask5b_en_lexsample_train.txt'
+
 corpus_file = open (file, "r")
-output_file = open ("/Users/ankit/code/nlp-metaphors/data/semverb/just_sentences_with_phrases_test.txt", "w")
+output_file = open ("/Users/ankit/code/nlp-metaphors/data/semverb/just_sentences_with_phrases_train_lex.txt", "w")
 
 for line in corpus_file:
     line_parts = line.split("\t")
@@ -18,7 +20,7 @@ for line in corpus_file:
         sane_sen_w = remove_tags(sane_sen[0].encode("utf8"))
     except:
         import pdb; pdb.set_trace()
-    final_sentence = "%s\n" % sane_sen_w
+    final_sentence = "%s\n" % sane_sen_w.strip()
     output_file.write(final_sentence)
 
 

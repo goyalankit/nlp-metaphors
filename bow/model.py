@@ -13,11 +13,6 @@ def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
     return lines
 
-train_data = create_vector("../data/bow/train.txt")
-label_data = create_vector("../data/bow/label.txt")
-test_data  = create_vector("../data/bow/test.txt")
-test_label = create_vector("../data/bow/test_label.txt")
-
 def create_feature_vec(file):
     data = create_vector(file)
     data_array = np.array(data, dtype='float64')
@@ -50,28 +45,31 @@ def get_stats(predicted, test_label):
 # Script Start
 # ***********
 
+# Set LEX to True to run the model on unseen data
 LEX = True
+
+# Set USE_SRL to True to run the model with Verb Restrictions SRL feature
 USE_SRL = False
 
 if LEX == True:
-    train_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_train.txt")
-    label_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_train_label.txt")
-    test_data  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_test.txt")
-    test_label  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/lex_test_label.txt")
+    train_data = create_vector("../data/bow/lex_train.txt")
+    label_data = create_vector("../data/bow/lex_train_label.txt")
+    test_data  = create_vector("../data/bow/lex_test.txt")
+    test_label  = create_vector("../data/bow/lex_test_label.txt")
 else:
-    train_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/train.txt")
-    label_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/label.txt")
-    test_data  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test.txt")
-    test_label  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test_label.txt")
+    train_data = create_vector("../data/bow/train.txt")
+    label_data = create_vector("../data/bow/label.txt")
+    test_data  = create_vector("../data/bow/test.txt")
+    test_label  = create_vector("../data/bow/test_label.txt")
 
 # SRL features
 if USE_SRL:
     if LEX == True:
-        srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
-        srl_test_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_test_vec.txt")
+        srl_train_features = create_feature_vec("../data/semverb/features_train_vec_lex.txt")
+        srl_test_features = create_feature_vec("../data/semverb/features_test_vec_lex.txt")
     else:
-        srl_train_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_train_vec.txt")
-        srl_test_features = create_feature_vec("/Users/ankit/code/nlp-metaphors/data/semverb/features_test_vec.txt")
+        srl_train_features = create_feature_vec("../data/semverb/features_train_vec.txt")
+        srl_test_features = create_feature_vec("../data/semverb/features_test_vec.txt")
 else:
     pass
 
