@@ -49,8 +49,8 @@ def load_data(data_file):
 
         # clean up and parse sentence
         entry.sentences = sent_tokenize(sentences)
-        entry.pos       = np.hstack(np.array([parse(s) for s in entry.sentences]))
         entry.sentence  = np.array([wordpunct_tokenize(x) for x in entry.sentences])
+        #entry.pos       = pos_tag(entry.sentence)
         entry.sentence  = np.hstack(entry.sentence)
         entry.sentence_lemma = np.array([lemmatize(w) for w in entry.sentence])
 
@@ -73,7 +73,7 @@ def load_data(data_file):
         lines.append(entry)
     return lines
 
-def data(filename, label):
+def data(filename, label, force_reload=False):
     pklfile = '{}.data'.format(label)
     if os.path.exists(pklfile):
         entries = pickle.load( open(pklfile, 'rb'))
@@ -82,9 +82,9 @@ def data(filename, label):
         pickle.dump(entries, open(pklfile, "wb"))
     return entries
 
-def get_train_data():
-    return data(TRAIN_FILE, 'training')
+def get_train_data(force_reload=False):
+    return data(TRAIN_FILE, 'training', force_reload)
 
-def get_test_data():
-    return data(TEST_FILE, 'testing')
+def get_test_data(force_reload=False):
+    return data(TEST_FILE, 'testing', force_reload)
 
