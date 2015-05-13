@@ -15,7 +15,7 @@ def get_srl(sentence, srl_test):
     return
 
 def create_file():
-    test_data   = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/train.txt")
+    test_data   = create_vector("../data/bow/train.txt")
     srl_test  = open("srl_train.txt", "a")
     count = 0
     for line in test_data:
@@ -26,7 +26,5 @@ def create_file():
     print count
 
 create_file()
-
-
 
 

@@ -12,10 +12,10 @@ def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
     return lines
 
-train_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/train.txt")
-label_data = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/label.txt")
-test_data  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test.txt")
-test_label  = create_vector("/Users/ankit/code/nlp-metaphors/data/bow/test_label.txt")
+train_data = create_vector("../data/bow/train.txt")
+label_data = create_vector("../data/bow/label.txt")
+test_data  = create_vector("../data/bow/test.txt")
+test_label = create_vector("../data/bow/test_label.txt")
 
 assert len(train_data) == len(label_data)
 
