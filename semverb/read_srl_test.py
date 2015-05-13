@@ -1,7 +1,16 @@
 from __future__ import division
 from nltk.corpus import verbnet
 from nltk.stem.porter import PorterStemmer
+from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
+from nltk.tokenize import word_tokenize
+import nltk.corpus as nlcor
+import nltk
+
+#helper methods
+def create_vector(file):
+    lines = [line.strip() for line in open(file, "r")]
+    return lines
 
 _PERSON_SYNSET = 'person.n.01'
 _MALE_SYNSETS = [
@@ -333,13 +342,17 @@ def getAgents(current_srl, vindex):
     return agents, patients
 
 
-def process_srl(srl_output, actual_data):
+def process_srl(srl_output, actual_data, just_phrases):
     porter_stemmer = PorterStemmer()
+    wn_lem = WordNetLemmatizer()
     file_open = open (srl_output, "r")
     output    = file_open.read()
     srl_output = output.split("\n================\n")
     srl_list = []
     [srl_list.append(line.strip()) for line in srl_output]
+
+    phrase_sentence = create_vector(just_phrases)
+    import pdb; pdb.set_trace()
 
     corpus_data = create_vector(actual_data)
     number = 0
@@ -347,15 +360,33 @@ def process_srl(srl_output, actual_data):
         sline       = line.split("\t")
         sense       = sline[2] # figurative or literal
         metaphor    = sline[1] # along the line <- the metaphor itself
-        current_srl = srl_list[number].split("\n") # semantic role labeling of give sentece
+        try:
+            current_srl = srl_list[number].split("\n") # semantic role labeling of give sentece
+        except:
+            import pdb; pdb.set_trace()
 
-        mtokens = metaphor.split(" ")
+        #mtokens = metaphor.split(" ")
+        mtokens_t = word_tokenize(phrase_sentence[number])
+        mtokens_t = [w for w in mtokens_t if not w in nlcor.stopwords.words('english')]
+        mtokens   = filter(lambda word: word not in ",-'", mtokens_t)
+        sane_mt = [mt.decode('utf8') for mt in mtokens]
+        pos_mtokens = nltk.pos_tag(sane_mt)
+        only_verbs = [tkn[0] for tkn in pos_mtokens if 'VB' in tkn[1]]
+        #print "==============================================="
         line_score = 0
         token_count = 1
-        for mtoken in mtokens:
+        number += 1
+        print "phrase tokens: %s" % mtokens_t
+        print "only verbs: %s" % only_verbs
+
+        for mtoken in only_verbs:
             vnclasses = verbnet.classids(mtoken)
             if not vnclasses:
-                continue
+                vnclasses = verbnet.classids(wn_lem.lemmatize(mtoken))
+                if not vnclasses:
+                    continue
+            print "vnclasses: %s" % vnclasses
+
             mindex = [index for index, sl in enumerate(current_srl) if porter_stemmer.stem(mtoken) in sl.decode('utf8')]
             if not mindex:
          #       print 0
@@ -364,16 +395,22 @@ def process_srl(srl_output, actual_data):
 
             class_score = 0
             class_count = 1
+            print '----- %s -----' % mtoken
             for vn in vnclasses:
                 v=verbnet.vnclass(vn)
                 restrictions = GetVerbnetRestrictions(v)
+             #   print restrictions
                 if restrictions:
                     class_score = check_validity(current_srl, mindex[0], restrictions)
                     class_count += 1
+                    print class_score
+                else:
+                    print "No restrictions for %s" % vn
             if class_count < 2:
                 avg_class_score = class_score / class_count
             else:
                 avg_class_score = class_score / (class_count - 1)
+            print '---------------'
 
             line_score += avg_class_score
             token_count += 1
@@ -384,6 +421,5 @@ def process_srl(srl_output, actual_data):
 
 #        print "%s - %s - %s" % (sline[1], sline[2], line_score)
         print avg_line_score
-        number += 1
 
-process_srl('srl_test.txt','../data/subtask5b_en_allwords_test.txt')
+process_srl('srl_train.txt','../data/subtask5b_en_allwords_train.txt', '../data/semverb/just_sentences_with_phrases_train.txt')
