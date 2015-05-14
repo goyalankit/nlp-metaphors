@@ -15,8 +15,8 @@ def get_srl(sentence, srl_test):
     return
 
 def create_file():
-    test_data   = create_vector("../data/bow/lex_dev.txt")
-    srl_test  = open("srl_lex_dev.txt", "a")
+    test_data   = create_vector("../data/bow/srl_allwords_dev.txt")
+    srl_test  = open("srl_allwords_dev.txt", "a")
     count = 0
     for line in test_data:
         count += 1
