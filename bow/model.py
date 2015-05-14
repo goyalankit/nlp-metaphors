@@ -7,8 +7,11 @@ from sklearn import metrics
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 from scipy.sparse import coo_matrix, hstack
+from stop_words import STOP_WORDS
+import random
 
-#helper methods
+PRINT_LEVEL = ''#'VERBOSE'
+
 def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
     return lines
@@ -27,23 +30,25 @@ def convert_to_feature_vec(data):
 def train(features, labels):
     # Training
     logistic_model_data = LogisticRegression(penalty="l2")
-    print "Training..."
-    logistic_model_data.fit(features, label_data)
-    print "Trained."
+    if PRINT_LEVEL == 'VERBOSE': print "Training..."
+    logistic_model_data.fit(features, labels)
+    if PRINT_LEVEL == 'VERBOSE': print "Trained."
     return logistic_model_data
 
 def test(model, features):
-    print "Testing..."
+    if PRINT_LEVEL == 'VERBOSE': print "Testing..."
     predicted = model.predict(features)
-    print "Tested."
+    if PRINT_LEVEL == 'VERBOSE': print "Tested."
     return predicted
 
 
 def get_stats(predicted, test_label):
-    print "---L2 Logistic Regression---"
-    print np.mean(predicted == test_label)
-    print(metrics.classification_report(test_label, predicted))
-    print "----------------------------"
+    if PRINT_LEVEL == 'VERBOSE': print "---L2 Logistic Regression---"
+    accuracy = np.mean(predicted == test_label)
+    if PRINT_LEVEL == 'VERBOSE': print accuracy
+    if PRINT_LEVEL == 'VERBOSE': print(metrics.classification_report(test_label, predicted))
+    if PRINT_LEVEL == 'VERBOSE': print "----------------------------"
+    return accuracy
 
 def get_similarity_vec(file):
     data_similarity_vec = create_vector(file)
@@ -64,12 +69,182 @@ def get_similarity_vec(file):
     return phrase_sentence_features, only_sentence_features, only_phrase_features
 
 
-# ***********
-# Script Start
-# ***********
+def model(stop_word_list=None):
+    # ***********
+    # Script Start
+    # ***********
 
-# Set LEX to True to run the model on seen data
-LEX = True
+    # Set LEX to True to run the model on seen data
+    if USE_BOW:
+        if LEX == True:
+            train_data = create_vector("../data/bow/lex_train.txt")
+            test_data  = create_vector("../data/bow/lex_test.txt")
+        else:
+            train_data = create_vector("../data/bow/train.txt")
+            test_data  = create_vector("../data/bow/test.txt")
+
+        # create bag of words for Training data
+        if stop_word_list == "default":
+            count_vect = CountVectorizer(stop_words='english')
+        elif stop_word_list is None:
+            count_vect = CountVectorizer()
+        else:
+            count_vect = CountVectorizer(stop_words=stop_word_list)
+
+
+        X_train_counts = count_vect.fit_transform(train_data)
+
+        tfidf_transformer = TfidfTransformer()
+        X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
+
+        # Create bag of words for Testing data
+        X_new_counts = count_vect.transform(test_data)
+        X_new_tfidf = tfidf_transformer.transform(X_new_counts)
+
+    else:
+        pass
+
+    if LEX == True:
+        label_data = create_vector("../data/bow/lex_train_label.txt")
+        test_label  = create_vector("../data/bow/lex_test_label.txt")
+    else:
+        label_data = create_vector("../data/bow/label.txt")
+        test_label  = create_vector("../data/bow/test_label.txt")
+
+    # SRL features
+    if USE_SRL:
+        if PRINT_LEVEL == 'VERBOSE': print "Using SRL Feature"
+        if LEX == True:
+            srl_train_features = create_feature_vec("../data/semverb/features_train_vec_lex.txt")
+            srl_test_features = create_feature_vec("../data/semverb/features_test_vec_lex.txt")
+        else:
+            srl_train_features = create_feature_vec("../data/semverb/features_train_vec.txt")
+            srl_test_features = create_feature_vec("../data/semverb/features_test_vec.txt")
+    else:
+        pass
+
+    if SIMILARITY_FEATURES:
+        if LEX:
+            #phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
+            #        get_similarity_vec("../data/sem/subtask5b_en_lexsample_test.txt.similarity.txt")
+            #phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
+            #        get_similarity_vec("../data/sem/subtask5b_en_lexsample_train.txt.similarity.txt")
+
+
+            phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
+                    get_similarity_vec("../data/other-data/test_features.txt")
+            phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
+                    get_similarity_vec("../data/other-data/train_features.txt")
+        else:
+            phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
+                    get_similarity_vec("../data/sem/subtask5b_en_allwords_test.txt.similarity.txt")
+            phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
+                    get_similarity_vec("../data/sem/subtask5b_en_allwords_train.txt.similarity.txt")
+
+    combined_train_features = None
+    combined_test_features = None
+
+    if USE_BOW:
+        combined_train_features = X_train_tfidf
+        combined_test_features = X_new_tfidf
+        if PRINT_LEVEL == 'VERBOSE': print "------ Feature: BOW --------\n"
+        if PRINT_LEVEL == 'VERBOSE': print "Train shape: %s" % str(combined_train_features.shape)
+        if PRINT_LEVEL == 'VERBOSE': print "Test shape: %s" % str(combined_test_features.shape)
+
+    # TRAINING: Merge Bag of words and SRL features
+    if USE_SRL:
+        if PRINT_LEVEL == 'VERBOSE': print "Using SRL"
+        if combined_train_features is not None:
+            combined_train_features = hstack([combined_train_features, srl_train_features])
+            combined_test_features = hstack([combined_test_features, srl_test_features])
+        else:
+            combined_train_features = srl_train_features
+            combined_test_features = srl_test_features
+
+        if PRINT_LEVEL == 'VERBOSE': print "------ Feature: SRL --------\n"
+        if PRINT_LEVEL == 'VERBOSE': print "Train shape: %s" % str(combined_train_features.shape)
+        if PRINT_LEVEL == 'VERBOSE': print "Test shape: %s" % str(combined_test_features.shape)
+
+    if USE_PHRASE_SENTENCE:
+        if combined_train_features is not None:
+            combined_train_features = hstack([combined_train_features, phrase_sentence_train_features])
+            combined_test_features  = hstack([combined_test_features, phrase_sentence_test_features])
+        else:
+            combined_test_features  = phrase_sentence_test_features
+            combined_train_features = phrase_sentence_train_features
+
+        if PRINT_LEVEL == 'VERBOSE': print "------ Feature: USE_PHRASE_SENTENCE --------\n"
+        if PRINT_LEVEL == 'VERBOSE': print "Train shape: %s" % str(combined_train_features.shape)
+        if PRINT_LEVEL == 'VERBOSE': print "Test shape: %s" % str(combined_test_features.shape)
+
+    if USE_ONLY_SENTENCE:
+        if combined_train_features is not None:
+            combined_train_features = hstack([combined_train_features, only_sentence_train_features])
+            combined_test_features = hstack([combined_test_features, only_sentence_test_features])
+        else:
+            combined_test_features = only_sentence_test_features
+            combined_train_features = only_sentence_train_features
+
+        if PRINT_LEVEL == 'VERBOSE': print "------ Feature: USE_ONLY_SENTENCE --------\n"
+        if PRINT_LEVEL == 'VERBOSE': print "Train shape: %s" % str(combined_train_features.shape)
+        if PRINT_LEVEL == 'VERBOSE': print "Test shape: %s" % str(combined_test_features.shape)
+
+    if USE_ONLY_PHRASE:
+        if combined_train_features is not None:
+            combined_train_features = hstack([combined_train_features, only_phrase_train_features])
+            combined_test_features = hstack([combined_test_features, only_phrase_test_features])
+        else:
+            combined_test_features = only_phrase_test_features
+            combined_train_features = only_phrase_train_features
+
+        if PRINT_LEVEL == 'VERBOSE': print "------ Feature: USE_ONLY_PHRASE --------\n"
+        if PRINT_LEVEL == 'VERBOSE': print "Train shape: %s" % str(combined_train_features.shape)
+        if PRINT_LEVEL == 'VERBOSE': print "Test shape: %s" % str(combined_test_features.shape)
+
+    if PRINT_LEVEL == 'VERBOSE': print "----------------------------"
+    if PRINT_LEVEL == 'VERBOSE': print "--- Running the model ---"
+
+    logistic_model = train(combined_train_features, label_data)
+    predicted      = test(logistic_model, combined_test_features)
+    return get_stats(predicted, test_label)
+
+
+    """
+    print "Printing advanced statistics"
+    test_vector = create_vector("../data/subtask5b_en_lexsample_test.txt")
+    current_phrase = None
+    previous_phrase = None
+    current_count = 0
+    num_phrases = 0
+    previous_count = 0
+    total_sen_count, feature_count = combined_test_features.shape
+    for phrase in test_vector:
+        current_phrase = phrase.split('\t')[1]
+        if previous_phrase is None:
+            previous_phrase = current_phrase
+
+        if current_phrase != previous_phrase:
+            print ("Running for '%s' with current phrase being. %s Total number of previous phrases: " % (str(previous_phrase), str(current_phrase))), (current_count - previous_count)
+            combined_test_features_t = combined_test_features.toarray()[previous_count:current_count-1, ]
+            p_t = test(logistic_model, combined_test_features_t)
+            get_stats(p_t, test_label[previous_count:current_count-1])
+            previous_count = current_count
+            previous_phrase = current_phrase
+
+        current_count += 1
+    """
+
+def get_random_stopwords():
+    slist = []
+    for word in STOP_WORDS:
+        if random.random() > 0.5:
+            slist.append(word)
+        else:
+            pass
+    print "List size: ", len(slist)
+    return slist
+
+LEX = False
 
 USE_BOW = True
 
@@ -77,131 +252,21 @@ USE_BOW = True
 USE_SRL = True
 
 # You must set similarity features to True if you are using any of the relatedness feature
-SIMILARITY_FEATURES = True
-USE_PHRASE_SENTENCE = True
-USE_ONLY_SENTENCE = True
-USE_ONLY_PHRASE = True
+SIMILARITY_FEATURES = False
+USE_PHRASE_SENTENCE = False
+USE_ONLY_SENTENCE = False
+USE_ONLY_PHRASE = False
 
-if USE_BOW:
-    if LEX == True:
-        train_data = create_vector("../data/bow/lex_train.txt")
-        test_data  = create_vector("../data/bow/lex_test.txt")
-    else:
-        train_data = create_vector("../data/bow/train.txt")
-        test_data  = create_vector("../data/bow/test.txt")
 
-    # create bag of words for Training data
-    count_vect = CountVectorizer()
-    X_train_counts = count_vect.fit_transform(train_data)
 
-    tfidf_transformer = TfidfTransformer()
-    X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
-
-    # Create bag of words for Testing data
-    X_new_counts = count_vect.transform(test_data)
-    X_new_tfidf = tfidf_transformer.transform(X_new_counts)
-
-else:
-    pass
-
-if LEX == True:
-    label_data = create_vector("../data/bow/lex_train_label.txt")
-    test_label  = create_vector("../data/bow/lex_test_label.txt")
-else:
-    label_data = create_vector("../data/bow/label.txt")
-    test_label  = create_vector("../data/bow/test_label.txt")
-
-# SRL features
-if USE_SRL:
-    print "Using SRL Feature"
-    if LEX == True:
-        srl_train_features = create_feature_vec("../data/semverb/features_train_vec_lex.txt")
-        srl_test_features = create_feature_vec("../data/semverb/features_test_vec_lex.txt")
-    else:
-        srl_train_features = create_feature_vec("../data/semverb/features_train_vec.txt")
-        srl_test_features = create_feature_vec("../data/semverb/features_test_vec.txt")
-else:
-    pass
-
-if SIMILARITY_FEATURES:
-    if LEX:
-        phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
-                get_similarity_vec("../data/sem/subtask5b_en_lexsample_test.txt.similarity.txt")
-        phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
-                get_similarity_vec("../data/sem/subtask5b_en_lexsample_train.txt.similarity.txt")
-    else:
-        phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
-                get_similarity_vec("../data/sem/subtask5b_en_allwords_test.txt.similarity.txt")
-        phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
-                get_similarity_vec("../data/sem/subtask5b_en_allwords_train.txt.similarity.txt")
-
-combined_train_features = None
-combined_test_features = None
-
-if USE_BOW:
-    combined_train_features = X_train_tfidf
-    combined_test_features = X_new_tfidf
-    print "------ Feature: BOW --------\n"
-    print "Train shape: %s" % str(combined_train_features.shape)
-    print "Test shape: %s" % str(combined_test_features.shape)
-
-# TRAINING: Merge Bag of words and SRL features
-if USE_SRL:
-    print "Using SRL"
-    if combined_train_features is not None:
-        combined_train_features = hstack([combined_train_features, srl_train_features])
-        combined_test_features = hstack([combined_test_features, srl_test_features])
-    else:
-        combined_train_features = srl_train_features
-        combined_test_features = srl_test_features
-
-    print "------ Feature: SRL --------\n"
-    print "Train shape: %s" % str(combined_train_features.shape)
-    print "Test shape: %s" % str(combined_test_features.shape)
-
-if USE_PHRASE_SENTENCE:
-    if combined_train_features is not None:
-        combined_train_features = hstack([combined_train_features, phrase_sentence_train_features])
-        combined_test_features  = hstack([combined_test_features, phrase_sentence_test_features])
-    else:
-        combined_test_features  = phrase_sentence_test_features
-        combined_train_features = phrase_sentence_train_features
-
-    print "------ Feature: USE_PHRASE_SENTENCE --------\n"
-    print "Train shape: %s" % str(combined_train_features.shape)
-    print "Test shape: %s" % str(combined_test_features.shape)
-
-if USE_ONLY_SENTENCE:
-    if combined_train_features is not None:
-        combined_train_features = hstack([combined_train_features, only_sentence_train_features])
-        combined_test_features = hstack([combined_test_features, only_sentence_test_features])
-    else:
-        combined_test_features = only_sentence_test_features
-        combined_train_features = only_sentence_train_features
-
-    print "------ Feature: USE_ONLY_SENTENCE --------\n"
-    print "Train shape: %s" % str(combined_train_features.shape)
-    print "Test shape: %s" % str(combined_test_features.shape)
-
-if USE_ONLY_PHRASE:
-    if combined_train_features is not None:
-        combined_train_features = hstack([combined_train_features, only_phrase_train_features])
-        combined_test_features = hstack([combined_test_features, only_phrase_test_features])
-    else:
-        combined_test_features = only_phrase_test_features
-        combined_train_features = only_phrase_train_features
-
-    print "------ Feature: USE_ONLY_PHRASE --------\n"
-    print "Train shape: %s" % str(combined_train_features.shape)
-    print "Test shape: %s" % str(combined_test_features.shape)
-
-print "----------------------------"
-print "--- Running the model ---"
-
-logistic_model = train(combined_train_features, label_data)
-predicted      = test(logistic_model, combined_test_features)
-get_stats(predicted, test_label)
-
+for i in range(0,10):
+    rlist = get_random_stopwords()
+    LEX = False
+    accuracy = model(rlist)
+    print accuracy
+    LEX = True
+    accuracy = model(rlist)
+    print accuracy
 # Check svm
 #text_clf = Pipeline([('vect', CountVectorizer()),
                      #('tfidf', TfidfTransformer()),
@@ -213,4 +278,5 @@ get_stats(predicted, test_label)
 #predicted = text_clf.predict(test_data)
 #print "--------SVM----------"
 #print np.mean(predicted == test_label)     
+
 
