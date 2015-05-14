@@ -20,6 +20,7 @@ def create_feature_vec(file):
 
 def convert_to_feature_vec(data):
     data_array = np.array(data, dtype='float64')
+    data_array[np.where(np.isnan(data_array))] = 0
     return data_array.reshape(len(data_array), 1)
 
 
@@ -51,14 +52,19 @@ def get_similarity_vec(file):
     only_phrase     = []
     only_sentence   = []
     for line in data_similarity_vec:
+        #import pdb; pdb.set_trace()
         sline = line.split("\t")
         phrase_sentence.append(sline[0])
         only_sentence.append(sline[1])
         only_phrase.append(sline[2])
 
+    print phrase_sentence
+    print "-------------"
     phrase_sentence_features = convert_to_feature_vec(phrase_sentence)
     only_sentence_features   = convert_to_feature_vec(only_sentence)
     only_phrase_features     = convert_to_feature_vec(only_phrase)
+    print np.sum(np.isnan(phrase_sentence_features))
+    print "-------------"
     return phrase_sentence_features, only_sentence_features, only_phrase_features
 
 
@@ -75,8 +81,8 @@ USE_BOW = True
 USE_SRL = False
 
 # You must set similarity features to True if you are using any of the relatedness feature
-SIMILARITY_FEATURES = False
-USE_PHRASE_SENTENCE = False
+SIMILARITY_FEATURES = True
+USE_PHRASE_SENTENCE = True
 USE_ONLY_SENTENCE = False
 USE_ONLY_PHRASE = False
 
@@ -123,11 +129,15 @@ else:
 
 if SIMILARITY_FEATURES:
     if LEX:
-        phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = get_similarity_vec("../data/subtask5b_en_lexsample_test.txt.similarity.txt")
-        phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = get_similarity_vec("../data/subtask5b_en_lexsample_train.txt.similarity.txt")
+        phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
+                get_similarity_vec("../data/subtask5b_en_lexsample_test.txt.similarity.txt")
+        phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
+                get_similarity_vec("../data/subtask5b_en_lexsample_train.txt.similarity.txt")
     else:
-        phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = get_similarity_vec("../data/subtask5b_en_allwords_test.txt.similarity.txt")
-        phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = get_similarity_vec("../data/subtask5b_en_allwords_train.txt.similarity.txt")
+        phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
+                get_similarity_vec("../data/subtask5b_en_allwords_test.txt.similarity.txt")
+        phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
+                get_similarity_vec("../data/subtask5b_en_allwords_train.txt.similarity.txt")
 
 combined_train_features = None
 combined_test_features = None
@@ -155,10 +165,10 @@ if USE_SRL:
 
 if USE_PHRASE_SENTENCE:
     if combined_train_features is not None:
-        combined_train_featrues = hstack([combined_train_features, phrase_sentence_train_features])
-        combined_test_features = hstack([combined_test_features, phrase_sentence_test_features])
+        combined_train_features = hstack([combined_train_features, phrase_sentence_train_features])
+        combined_test_features  = hstack([combined_test_features, phrase_sentence_test_features])
     else:
-        combined_test_features = phrase_sentence_test_features
+        combined_test_features  = phrase_sentence_test_features
         combined_train_features = phrase_sentence_train_features
 
     print "------ Feature: USE_PHRASE_SENTENCE --------\n"
@@ -167,7 +177,7 @@ if USE_PHRASE_SENTENCE:
 
 if USE_ONLY_SENTENCE:
     if combined_train_features is not None:
-        combined_train_featrues = hstack([combined_train_features, only_sentence_train_features])
+        combined_train_features = hstack([combined_train_features, only_sentence_train_features])
         combined_test_features = hstack([combined_test_features, only_sentence_test_features])
     else:
         combined_test_features = only_sentence_test_features
@@ -179,7 +189,7 @@ if USE_ONLY_SENTENCE:
 
 if USE_ONLY_PHRASE:
     if combined_train_features is not None:
-        combined_train_featrues = hstack([combined_train_features, only_phrase_train_features])
+        combined_train_features = hstack([combined_train_features, only_phrase_train_features])
         combined_test_features = hstack([combined_test_features, only_phrase_test_features])
     else:
         combined_test_features = only_phrase_test_features
