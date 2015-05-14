@@ -58,13 +58,9 @@ def get_similarity_vec(file):
         only_sentence.append(sline[1])
         only_phrase.append(sline[2])
 
-    print phrase_sentence
-    print "-------------"
     phrase_sentence_features = convert_to_feature_vec(phrase_sentence)
     only_sentence_features   = convert_to_feature_vec(only_sentence)
     only_phrase_features     = convert_to_feature_vec(only_phrase)
-    print np.sum(np.isnan(phrase_sentence_features))
-    print "-------------"
     return phrase_sentence_features, only_sentence_features, only_phrase_features
 
 
@@ -73,7 +69,7 @@ def get_similarity_vec(file):
 # ***********
 
 # Set LEX to True to run the model on unseen data
-LEX = False
+LEX = True
 
 USE_BOW = True
 
@@ -83,7 +79,7 @@ USE_SRL = False
 # You must set similarity features to True if you are using any of the relatedness feature
 SIMILARITY_FEATURES = True
 USE_PHRASE_SENTENCE = True
-USE_ONLY_SENTENCE = False
+USE_ONLY_SENTENCE = True
 USE_ONLY_PHRASE = False
 
 if USE_BOW:
