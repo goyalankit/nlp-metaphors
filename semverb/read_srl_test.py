@@ -429,5 +429,9 @@ def process_srl(srl_output, actual_data, just_phrases):
 #process_srl('srl_train.txt','../data/subtask5b_en_allwords_train.txt', '../data/semverb/just_sentences_with_phrases_train.txt')
 #process_srl('srl_test.txt','../data/subtask5b_en_allwords_test.txt', '../data/semverb/just_sentences_with_phrases_test.txt')
 
-process_srl('../data/semverb/srl_lex_test.txt','../data/subtask5b_en_lexsample_test.txt', '../data/semverb/just_sentences_with_phrases_test_lex.txt')
+#process_srl('../data/semverb/srl_lex_test.txt','../data/subtask5b_en_lexsample_test.txt', '../data/semverb/just_sentences_with_phrases_test_lex.txt')
 #process_srl('../data/semverb/srl_lex_train.txt','../data/subtask5b_en_lexsample_train.txt', '../data/semverb/just_sentences_with_phrases_train_lex.txt')
+
+process_srl('../data/semverb/srl_allwords_dev.txt','../data/subtask5b_en_allwords_dev.txt', '../data/semverb/just_sentences_with_phrases_dev_allwords.txt')
+#process_srl('../data/semverb/srl_lex_dev.txt','../data/subtask5b_en_lexsample_dev.txt', '../data/semverb/just_sentences_with_phrases_dev_lex.txt')
+
