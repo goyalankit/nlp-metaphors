@@ -69,18 +69,18 @@ def get_similarity_vec(file):
 # ***********
 
 # Set LEX to True to run the model on unseen data
-LEX = True
+LEX = False
 
 USE_BOW = True
 
 # Set USE_SRL to True to run the model with Verb Restrictions SRL feature
-USE_SRL = False
+USE_SRL = True
 
 # You must set similarity features to True if you are using any of the relatedness feature
 SIMILARITY_FEATURES = True
 USE_PHRASE_SENTENCE = True
 USE_ONLY_SENTENCE = True
-USE_ONLY_PHRASE = False
+USE_ONLY_PHRASE = True
 
 if USE_BOW:
     if LEX == True:
@@ -126,14 +126,14 @@ else:
 if SIMILARITY_FEATURES:
     if LEX:
         phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
-                get_similarity_vec("../data/subtask5b_en_lexsample_test.txt.similarity.txt")
+                get_similarity_vec("../data/sem/subtask5b_en_lexsample_test.txt.similarity.txt")
         phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
-                get_similarity_vec("../data/subtask5b_en_lexsample_train.txt.similarity.txt")
+                get_similarity_vec("../data/sem/subtask5b_en_lexsample_train.txt.similarity.txt")
     else:
         phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
-                get_similarity_vec("../data/subtask5b_en_allwords_test.txt.similarity.txt")
+                get_similarity_vec("../data/sem/subtask5b_en_allwords_test.txt.similarity.txt")
         phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
-                get_similarity_vec("../data/subtask5b_en_allwords_train.txt.similarity.txt")
+                get_similarity_vec("../data/sem/subtask5b_en_allwords_train.txt.similarity.txt")
 
 combined_train_features = None
 combined_test_features = None
