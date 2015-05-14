@@ -9,8 +9,10 @@ from sklearn.pipeline import Pipeline
 from scipy.sparse import coo_matrix, hstack
 from stop_words import STOP_WORDS
 import random
+import pickle
 
 PRINT_LEVEL = ''#'VERBOSE'
+USE_DEV = True
 
 def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
@@ -74,14 +76,19 @@ def model(stop_word_list=None):
     # Script Start
     # ***********
 
-    # Set LEX to True to run the model on seen data
     if USE_BOW:
         if LEX == True:
             train_data = create_vector("../data/bow/lex_train.txt")
-            test_data  = create_vector("../data/bow/lex_test.txt")
+            if USE_DEV:
+                test_data  = create_vector("../data/bow/lex_dev.txt")
+            else:
+                test_data  = create_vector("../data/bow/lex_test.txt")
         else:
             train_data = create_vector("../data/bow/train.txt")
-            test_data  = create_vector("../data/bow/test.txt")
+            if USE_DEV:
+                test_data  = create_vector("../data/bow/allwords_dev.txt")
+            else:
+                test_data  = create_vector("../data/bow/test.txt")
 
         # create bag of words for Training data
         if stop_word_list == "default":
@@ -106,20 +113,32 @@ def model(stop_word_list=None):
 
     if LEX == True:
         label_data = create_vector("../data/bow/lex_train_label.txt")
-        test_label  = create_vector("../data/bow/lex_test_label.txt")
+        if USE_DEV:
+            test_label  = create_vector("../data/bow/lex_dev_label.txt")
+        else:
+            test_label  = create_vector("../data/bow/lex_test_label.txt")
     else:
         label_data = create_vector("../data/bow/label.txt")
-        test_label  = create_vector("../data/bow/test_label.txt")
+        if USE_DEV:
+            test_label  = create_vector("../data/bow/allwords_dev_label.txt")
+        else:
+            test_label  = create_vector("../data/bow/test_label.txt")
 
     # SRL features
     if USE_SRL:
         if PRINT_LEVEL == 'VERBOSE': print "Using SRL Feature"
         if LEX == True:
             srl_train_features = create_feature_vec("../data/semverb/features_train_vec_lex.txt")
-            srl_test_features = create_feature_vec("../data/semverb/features_test_vec_lex.txt")
+            if USE_DEV:
+                srl_test_features = create_feature_vec("../data/semverb/features_dev_vec_lex.txt")
+            else:
+                srl_test_features = create_feature_vec("../data/semverb/features_test_vec_lex.txt")
         else:
             srl_train_features = create_feature_vec("../data/semverb/features_train_vec.txt")
-            srl_test_features = create_feature_vec("../data/semverb/features_test_vec.txt")
+            if USE_DEV:
+                srl_test_features = create_feature_vec("../data/semverb/features_dev_vec.txt")
+            else:
+                srl_test_features = create_feature_vec("../data/semverb/features_test_vec.txt")
     else:
         pass
 
@@ -130,7 +149,7 @@ def model(stop_word_list=None):
             #phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
             #        get_similarity_vec("../data/sem/subtask5b_en_lexsample_train.txt.similarity.txt")
 
-
+            print "MARK NOT USING YOUR FEATURES. UNCOMMENT TO USE YOUR FEATURE"
             phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
                     get_similarity_vec("../data/other-data/test_features.txt")
             phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
@@ -244,6 +263,12 @@ def get_random_stopwords():
     print "List size: ", len(slist)
     return slist
 
+
+def increment_counts(improves_hash, rlist):
+    for word in rlist:
+        improves_hash[word] += 1
+
+# Set LEX to True to run the model on seen data
 LEX = False
 
 USE_BOW = True
@@ -252,21 +277,65 @@ USE_BOW = True
 USE_SRL = True
 
 # You must set similarity features to True if you are using any of the relatedness feature
+# This doesn't work with developement data
 SIMILARITY_FEATURES = False
 USE_PHRASE_SENTENCE = False
 USE_ONLY_SENTENCE = False
 USE_ONLY_PHRASE = False
 
+class Parameters(object):
+    word_list  = []
+    accuracy_seen = 0.0
+    accuracy_unseen = 0.0
+
+    def __init__(self, wl, aseen, aunseen):
+        word_list = []
+        accuracy_seen = aseen
+        accuracy_unseen = aunseen
+
+improves_seen = {}
+improves_unseen = {}
+improves_both = {}
+list_that_improves_both = {}
+for word in STOP_WORDS:
+    improves_seen[word] = 0
+    improves_unseen[word] = 0
+    improves_both[word] = 0
 
 
-for i in range(0,10):
+BASE_LINE_SEEN = 0.6880
+BASE_LINE_UNSEEN = 0.7740
+
+parameter_objects = []
+
+for i in range(0,2):
     rlist = get_random_stopwords()
     LEX = False
-    accuracy = model(rlist)
-    print accuracy
+    unseen_accuracy = model(rlist)
+    print unseen_accuracy
     LEX = True
-    accuracy = model(rlist)
-    print accuracy
+    seen_accuracy = model(rlist)
+    print seen_accuracy
+
+    if seen_accuracy > BASE_LINE_SEEN:
+        increment_counts(improves_seen, rlist)
+
+
+    if unseen_accuracy > BASE_LINE_SEEN:
+        increment_counts(improves_unseen, rlist)
+
+    if ((seen_accuracy > BASE_LINE_SEEN) & (unseen_accuracy > BASE_LINE_UNSEEN)):
+        p = Parameters.new(rlist, seen_accuracy, unseen_accuracy)
+        parameter_objects.append(p)
+
+with open('seen_improvement.pickle', 'wb') as f:
+    pickle.dump(improves_seen, f, pickle.HIGHEST_PROTOCOL)
+
+with open('unseen_improvement.pickle', 'wb') as f:
+    pickle.dump(improves_unseen, f, pickle.HIGHEST_PROTOCOL)
+
+with open('both_improvement.pickle', 'wb') as f:
+    pickle.dump(parameter_objects, f, pickle.HIGHEST_PROTOCOL)
 # Check svm
 #text_clf = Pipeline([('vect', CountVectorizer()),
                      #('tfidf', TfidfTransformer()),
