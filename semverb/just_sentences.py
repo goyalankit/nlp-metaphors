@@ -6,10 +6,10 @@ def remove_tags(text):
     return TAG_RE.sub('', text)
 
 #file = '/Users/ankit/code/nlp-metaphors/data/subtask5b_en_allwords_test.txt'
-file = '/Users/ankit/code/nlp-metaphors/data/subtask5b_en_lexsample_train.txt'
+file = '/Users/ankit/code/nlp-metaphors/data/subtask5b_en_allwords_dev.txt'
 
 corpus_file = open (file, "r")
-output_file = open ("/Users/ankit/code/nlp-metaphors/data/semverb/just_sentences_with_phrases_train_lex.txt", "w")
+output_file = open ("/Users/ankit/code/nlp-metaphors/data/semverb/just_sentences_with_phrases_dev_allwords.txt", "w")
 
 for line in corpus_file:
     line_parts = line.split("\t")
