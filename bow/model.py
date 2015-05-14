@@ -68,8 +68,8 @@ def get_similarity_vec(file):
 # Script Start
 # ***********
 
-# Set LEX to True to run the model on unseen data
-LEX = False
+# Set LEX to True to run the model on seen data
+LEX = True
 
 USE_BOW = True
 
