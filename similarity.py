@@ -1,4 +1,5 @@
 from nltk.corpus import wordnet, stopwords
+from nltk.stem import WordNetLemmatizer
 from nltk import wordpunct_tokenize, pos_tag
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -11,6 +12,8 @@ from load_data import (data,
                       TEST_FILE2, TEST_FILE3)
 
 sw = stopwords.words('english')
+
+wn_lem = WordNetLemmatizer()
 
 ###########################
 #helper methods
@@ -115,14 +118,16 @@ def get_bow(entries):
 
 
 def important_similarity(entry, tfidf, labels):
-    words = np.unique([w for w in entry.sentence if w not in entry.phrase])
+    words = np.unique([wn_lem.lemmatize(w) 
+                       for w in entry.sentence 
+                       if w not in entry.phrase])
     words = prep_words(words)
     words = np.array([w for w in words if w in labels])
     #import pdb; pdb.set_trace()
     bowi = np.array([np.where(labels==w)[0][0] for w in words])
     #import pdb; pdb.set_trace()
     bowv = tfidf[bowi]
-    top3 = np.argsort(bowv)[::-1][:3]
+    top3 = np.argsort(bowv)[::-1][:5]
     #import pdb; pdb.set_trace()
     dist = []
     for j in top3:
@@ -131,6 +136,7 @@ def important_similarity(entry, tfidf, labels):
         j_dist = []
         for pword in [x for x in entry.phrase if x not in sw]:
             #print pword, "-", w, "\t", word_similarity(w, pword)
+            pword = wn_lem.lemmatize(pword)
             d = word_similarity(w, pword)
             if len(d)>0:
                 j_dist.append(np.nanmean(d))
@@ -140,13 +146,11 @@ def important_similarity(entry, tfidf, labels):
             dist.append(np.nan)
     dist = np.array(dist)
     try:
-        return dist[~np.isnan(dist)][0] #np.nanmean(dist)
+        return np.nanmean(dist)
     except:
         return np.nan
 
 def make_features(inputfile, label):
-    #inputfile = TRAIN_FILE
-    #label     = 'training'
     featurefile = '{}.similarity.txt'.format(inputfile)
     f = open(featurefile, 'wb')
 

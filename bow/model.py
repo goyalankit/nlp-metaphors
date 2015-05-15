@@ -143,16 +143,16 @@ def model(stop_word_list=None):
 
     if SIMILARITY_FEATURES:
         if LEX:
-            #phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
-            #        get_similarity_vec("../data/sem/subtask5b_en_lexsample_test.txt.similarity.txt")
-            #phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
-            #        get_similarity_vec("../data/sem/subtask5b_en_lexsample_train.txt.similarity.txt")
-
-            print "MARK NOT USING YOUR FEATURES. UNCOMMENT TO USE YOUR FEATURE"
             phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
-                    get_similarity_vec("../data/other-data/test_features.txt")
+                    get_similarity_vec("../data/sem/subtask5b_en_lexsample_test.txt.similarity.txt")
             phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
-                    get_similarity_vec("../data/other-data/train_features.txt")
+                    get_similarity_vec("../data/sem/subtask5b_en_lexsample_train.txt.similarity.txt")
+
+            #print "MARK NOT USING YOUR FEATURES. UNCOMMENT TO USE YOUR FEATURE"
+            #phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
+            #        get_similarity_vec("../data/other-data/test_features.txt")
+            #phrase_sentence_train_features, only_sentence_train_features, only_phrase_train_features = \
+            #        get_similarity_vec("../data/other-data/train_features.txt")
         else:
             phrase_sentence_test_features, only_sentence_test_features, only_phrase_test_features = \
                     get_similarity_vec("../data/sem/subtask5b_en_allwords_test.txt.similarity.txt")
@@ -277,34 +277,36 @@ USE_SRL = True
 
 # You must set similarity features to True if you are using any of the relatedness feature
 # This doesn't work with developement data
-SIMILARITY_FEATURES = False
-USE_PHRASE_SENTENCE = False
+SIMILARITY_FEATURES = True
+USE_PHRASE_SENTENCE = True
 USE_ONLY_SENTENCE = False
 USE_ONLY_PHRASE = False
 
 
 USE_DEV = False
-PRINT_LEVEL = "verbose"
+PRINT_LEVEL = "VERBOSE"
 
-pr = model(STOP_WORDS_OPTIMIZED)
-print pr
 
-LEX = True
-for num_word in xrange(10, 34):
-    rlist = []
-    for word_tuple in STOP_WORDS_TUPLES:
-        if (word_tuple[1] > num_word):
-            rlist.append(word_tuple[0])
+def word_exp():
+    pr = model(STOP_WORDS_OPTIMIZED)
+    print pr
 
     LEX = True
-    seenac = model(rlist)
-    LEX = False
-    unseenac = model(rlist)
-    print "------------------"
-    print "Threshhold: ", num_word
-    print "Seen Accuracy: ", seenac
-    print "UnSeen Accuracy: ", unseenac
-    print "------------------"
+    for num_word in xrange(10, 34):
+        rlist = []
+        for word_tuple in STOP_WORDS_TUPLES:
+            if (word_tuple[1] > num_word):
+                rlist.append(word_tuple[0])
+
+        LEX = True
+        seenac = model(rlist)
+        LEX = False
+        unseenac = model(rlist)
+        print "------------------"
+        print "Threshhold: ", num_word
+        print "Seen Accuracy: ", seenac
+        print "UnSeen Accuracy: ", unseenac
+        print "------------------"
 
 
 """Uncomment to run the dev iterations

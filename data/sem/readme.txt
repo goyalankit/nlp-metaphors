@@ -1,1 +1,1 @@
-top1 tf-idf word similarity with phrase
+lemmatized top5 it-idf similarities (mean scored)
