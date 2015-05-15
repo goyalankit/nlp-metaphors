@@ -8,11 +8,10 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 from scipy.sparse import coo_matrix, hstack
 from stop_words import STOP_WORDS
+from stop_words import STOP_WORDS_OPTIMIZED
+from stop_words import STOP_WORDS_TUPLES
 import random
 import pickle
-
-PRINT_LEVEL = ''#'VERBOSE'
-USE_DEV = True
 
 def create_vector(file):
     lines = [line.strip() for line in open(file, "r")]
@@ -283,6 +282,32 @@ USE_PHRASE_SENTENCE = False
 USE_ONLY_SENTENCE = False
 USE_ONLY_PHRASE = False
 
+
+USE_DEV = False
+PRINT_LEVEL = "verbose"
+
+pr = model(STOP_WORDS_OPTIMIZED)
+print pr
+
+LEX = True
+for num_word in xrange(10, 34):
+    rlist = []
+    for word_tuple in STOP_WORDS_TUPLES:
+        if (word_tuple[1] > num_word):
+            rlist.append(word_tuple[0])
+
+    LEX = True
+    seenac = model(rlist)
+    LEX = False
+    unseenac = model(rlist)
+    print "------------------"
+    print "Threshhold: ", num_word
+    print "Seen Accuracy: ", seenac
+    print "UnSeen Accuracy: ", unseenac
+    print "------------------"
+
+
+"""Uncomment to run the dev iterations
 class Parameters(object):
     word_list  = []
     seen_accuracy = 0.0
@@ -308,7 +333,7 @@ BASE_LINE_SEEN = 0.8016
 
 parameter_objects = []
 
-for i in range(0,50):
+for i in range(0,500):
     print "iteration count #: ", i
     rlist = get_random_stopwords()
     LEX = False
@@ -356,6 +381,7 @@ with open('both_improvement.pickle', 'wb') as f:
 
 with open('both_improvement_object.pickle', 'wb') as f:
     pickle.dump(parameter_objects, f, pickle.HIGHEST_PROTOCOL)
+"""
 # Check svm
 #text_clf = Pipeline([('vect', CountVectorizer()),
                      #('tfidf', TfidfTransformer()),

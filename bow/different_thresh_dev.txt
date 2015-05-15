@@ -1,0 +1,121 @@
+0.602339181287
+------------------
+Threshhold:  10
+Seen Accuracy:  0.790502793296
+UnSeen Accuracy:  0.599415204678
+------------------
+------------------
+Threshhold:  11
+Seen Accuracy:  0.796089385475
+UnSeen Accuracy:  0.599415204678
+------------------
+------------------
+Threshhold:  12
+Seen Accuracy:  0.812849162011
+UnSeen Accuracy:  0.605263157895
+------------------
+------------------
+Threshhold:  13
+Seen Accuracy:  0.801675977654
+UnSeen Accuracy:  0.611111111111
+------------------
+------------------
+Threshhold:  14
+Seen Accuracy:  0.815642458101
+UnSeen Accuracy:  0.616959064327
+------------------
+------------------
+Threshhold:  15
+Seen Accuracy:  0.81843575419
+UnSeen Accuracy:  0.637426900585
+------------------
+------------------
+Threshhold:  16
+Seen Accuracy:  0.821229050279
+UnSeen Accuracy:  0.634502923977
+------------------
+------------------
+Threshhold:  17
+Seen Accuracy:  0.826815642458
+UnSeen Accuracy:  0.634502923977
+------------------
+------------------
+Threshhold:  18
+Seen Accuracy:  0.824022346369
+UnSeen Accuracy:  0.643274853801
+------------------
+------------------
+Threshhold:  19
+Seen Accuracy:  0.81843575419
+UnSeen Accuracy:  0.643274853801
+------------------
+------------------
+Threshhold:  20
+Seen Accuracy:  0.807262569832
+UnSeen Accuracy:  0.646198830409
+------------------
+------------------
+Threshhold:  21
+Seen Accuracy:  0.812849162011
+UnSeen Accuracy:  0.640350877193
+------------------
+------------------
+Threshhold:  22
+Seen Accuracy:  0.824022346369
+UnSeen Accuracy:  0.643274853801
+------------------
+------------------
+Threshhold:  23
+Seen Accuracy:  0.812849162011
+UnSeen Accuracy:  0.640350877193
+------------------
+------------------
+Threshhold:  24
+Seen Accuracy:  0.804469273743
+UnSeen Accuracy:  0.643274853801
+------------------
+------------------
+Threshhold:  25
+Seen Accuracy:  0.804469273743
+UnSeen Accuracy:  0.643274853801
+------------------
+------------------
+Threshhold:  26
+Seen Accuracy:  0.798882681564
+UnSeen Accuracy:  0.640350877193
+------------------
+------------------
+Threshhold:  27
+Seen Accuracy:  0.804469273743
+UnSeen Accuracy:  0.640350877193
+------------------
+------------------
+Threshhold:  28
+Seen Accuracy:  0.798882681564
+UnSeen Accuracy:  0.634502923977
+------------------
+------------------
+Threshhold:  29
+Seen Accuracy:  0.798882681564
+UnSeen Accuracy:  0.631578947368
+------------------
+------------------
+Threshhold:  30
+Seen Accuracy:  0.796089385475
+UnSeen Accuracy:  0.631578947368
+------------------
+------------------
+Threshhold:  31
+Seen Accuracy:  0.793296089385
+UnSeen Accuracy:  0.625730994152
+------------------
+------------------
+Threshhold:  32
+Seen Accuracy:  0.793296089385
+UnSeen Accuracy:  0.625730994152
+------------------
+------------------
+Threshhold:  33
+Seen Accuracy:  0.796089385475
+UnSeen Accuracy:  0.619883040936
+------------------
