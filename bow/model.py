@@ -285,13 +285,13 @@ USE_ONLY_PHRASE = False
 
 class Parameters(object):
     word_list  = []
-    accuracy_seen = 0.0
-    accuracy_unseen = 0.0
+    seen_accuracy = 0.0
+    unseen_accuracy = 0.0
 
     def __init__(self, wl, aseen, aunseen):
-        word_list = []
-        accuracy_seen = aseen
-        accuracy_unseen = aunseen
+        word_list = wl
+        seen_accuracy = aseen
+        unseen_accuracy = aunseen
 
 improves_seen = {}
 improves_unseen = {}
@@ -308,7 +308,8 @@ BASE_LINE_UNSEEN = 0.7740
 
 parameter_objects = []
 
-for i in range(0,2):
+for i in range(0,50):
+    print "iteration count #: ", i
     rlist = get_random_stopwords()
     LEX = False
     unseen_accuracy = model(rlist)
@@ -324,9 +325,12 @@ for i in range(0,2):
     if unseen_accuracy > BASE_LINE_SEEN:
         increment_counts(improves_unseen, rlist)
 
-    if ((seen_accuracy > BASE_LINE_SEEN) & (unseen_accuracy > BASE_LINE_UNSEEN)):
-        p = Parameters.new(rlist, seen_accuracy, unseen_accuracy)
-        parameter_objects.append(p)
+#    if ((seen_accuracy > BASE_LINE_SEEN) & (unseen_accuracy > BASE_LINE_UNSEEN)):
+    pobj = Parameters(rlist, seen_accuracy, unseen_accuracy)
+    pobj.word_list = rlist
+    pobj.seen_accuracy = seen_accuracy
+    pobj.unseen_accuracy = unseen_accuracy
+    parameter_objects.append(pobj)
 
 with open('seen_improvement.pickle', 'wb') as f:
     pickle.dump(improves_seen, f, pickle.HIGHEST_PROTOCOL)
