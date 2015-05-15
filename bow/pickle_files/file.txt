@@ -1,0 +1,432 @@
+iteration count #:  0
+List size:  164
+0.622807017544
+0.812849162011
+----------- both improved start-----------
+
+------ unseen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1114, 10180)
+Test shape: (518, 10180)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1114, 10181)
+Test shape: (518, 10181)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.658301158301
+             precision    recall  f1-score   support
+
+          0       0.66      0.93      0.77       319
+          1       0.67      0.22      0.33       199
+
+avg / total       0.66      0.66      0.60       518
+
+----------------------------
+------ seen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1424, 12010)
+Test shape: (594, 12010)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1424, 12011)
+Test shape: (594, 12011)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.79797979798
+             precision    recall  f1-score   support
+
+          0       0.78      0.84      0.81       299
+          1       0.82      0.76      0.79       295
+
+avg / total       0.80      0.80      0.80       594
+
+----------------------------
+--------- both improved end ------------
+
+iteration count #:  1
+List size:  155
+0.614035087719
+0.782122905028
+iteration count #:  2
+List size:  149
+0.605263157895
+0.796089385475
+iteration count #:  3
+List size:  156
+0.619883040936
+0.779329608939
+iteration count #:  4
+List size:  130
+0.614035087719
+0.801675977654
+iteration count #:  5
+List size:  170
+0.608187134503
+0.796089385475
+iteration count #:  6
+List size:  162
+0.611111111111
+0.782122905028
+iteration count #:  7
+List size:  176
+0.605263157895
+0.793296089385
+iteration count #:  8
+List size:  151
+0.599415204678
+0.798882681564
+iteration count #:  9
+List size:  170
+0.599415204678
+0.804469273743
+iteration count #:  10
+List size:  166
+0.616959064327
+0.801675977654
+iteration count #:  11
+List size:  162
+0.608187134503
+0.793296089385
+iteration count #:  12
+List size:  181
+0.622807017544
+0.810055865922
+----------- both improved start-----------
+
+------ unseen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1114, 10164)
+Test shape: (518, 10164)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1114, 10165)
+Test shape: (518, 10165)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.666023166023
+             precision    recall  f1-score   support
+
+          0       0.66      0.94      0.78       319
+          1       0.70      0.23      0.34       199
+
+avg / total       0.68      0.67      0.61       518
+
+----------------------------
+------ seen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1424, 11988)
+Test shape: (594, 11988)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1424, 11989)
+Test shape: (594, 11989)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.781144781145
+             precision    recall  f1-score   support
+
+          0       0.78      0.79      0.78       299
+          1       0.78      0.77      0.78       295
+
+avg / total       0.78      0.78      0.78       594
+
+----------------------------
+--------- both improved end ------------
+
+iteration count #:  13
+List size:  159
+0.616959064327
+0.787709497207
+iteration count #:  14
+List size:  161
+0.614035087719
+0.812849162011
+iteration count #:  15
+List size:  143
+0.614035087719
+0.798882681564
+iteration count #:  16
+List size:  152
+0.616959064327
+0.801675977654
+iteration count #:  17
+List size:  160
+0.614035087719
+0.796089385475
+iteration count #:  18
+List size:  153
+0.611111111111
+0.804469273743
+iteration count #:  19
+List size:  159
+0.602339181287
+0.793296089385
+iteration count #:  20
+List size:  162
+0.614035087719
+0.768156424581
+iteration count #:  21
+List size:  156
+0.608187134503
+0.807262569832
+iteration count #:  22
+List size:  148
+0.611111111111
+0.782122905028
+iteration count #:  23
+List size:  171
+0.599415204678
+0.81843575419
+iteration count #:  24
+List size:  159
+0.622807017544
+0.81843575419
+----------- both improved start-----------
+
+------ unseen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1114, 10183)
+Test shape: (518, 10183)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1114, 10184)
+Test shape: (518, 10184)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.679536679537
+             precision    recall  f1-score   support
+
+          0       0.67      0.95      0.78       319
+          1       0.75      0.25      0.38       199
+
+avg / total       0.70      0.68      0.63       518
+
+----------------------------
+------ seen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1424, 12016)
+Test shape: (594, 12016)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1424, 12017)
+Test shape: (594, 12017)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.789562289562
+             precision    recall  f1-score   support
+
+          0       0.78      0.81      0.79       299
+          1       0.80      0.77      0.78       295
+
+avg / total       0.79      0.79      0.79       594
+
+----------------------------
+--------- both improved end ------------
+
+iteration count #:  25
+List size:  166
+0.614035087719
+0.815642458101
+iteration count #:  26
+List size:  154
+0.614035087719
+0.784916201117
+iteration count #:  27
+List size:  156
+0.608187134503
+0.812849162011
+iteration count #:  28
+List size:  157
+0.616959064327
+0.804469273743
+iteration count #:  29
+List size:  162
+0.614035087719
+0.765363128492
+iteration count #:  30
+List size:  158
+0.611111111111
+0.782122905028
+iteration count #:  31
+List size:  145
+0.622807017544
+0.796089385475
+iteration count #:  32
+List size:  168
+0.611111111111
+0.807262569832
+iteration count #:  33
+List size:  158
+0.605263157895
+0.798882681564
+iteration count #:  34
+List size:  157
+0.622807017544
+0.790502793296
+iteration count #:  35
+List size:  155
+0.605263157895
+0.790502793296
+iteration count #:  36
+List size:  166
+0.593567251462
+0.793296089385
+iteration count #:  37
+List size:  166
+0.616959064327
+0.804469273743
+iteration count #:  38
+List size:  158
+0.602339181287
+0.796089385475
+iteration count #:  39
+List size:  157
+0.59649122807
+0.81843575419
+iteration count #:  40
+List size:  138
+0.593567251462
+0.796089385475
+iteration count #:  41
+List size:  153
+0.616959064327
+0.779329608939
+iteration count #:  42
+List size:  162
+0.616959064327
+0.787709497207
+iteration count #:  43
+List size:  155
+0.608187134503
+0.796089385475
+iteration count #:  44
+List size:  136
+0.619883040936
+0.804469273743
+----------- both improved start-----------
+
+------ unseen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1114, 10208)
+Test shape: (518, 10208)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1114, 10209)
+Test shape: (518, 10209)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.677606177606
+             precision    recall  f1-score   support
+
+          0       0.67      0.95      0.78       319
+          1       0.74      0.25      0.37       199
+
+avg / total       0.70      0.68      0.62       518
+
+----------------------------
+------ seen ----
+Using SRL Feature
+------ Feature: BOW --------
+
+Train shape: (1424, 12033)
+Test shape: (594, 12033)
+Using SRL
+------ Feature: SRL --------
+
+Train shape: (1424, 12034)
+Test shape: (594, 12034)
+----------------------------
+--- Running the model ---
+Training...
+Trained.
+Testing...
+Tested.
+---L2 Logistic Regression---
+0.781144781145
+             precision    recall  f1-score   support
+
+          0       0.78      0.78      0.78       299
+          1       0.78      0.78      0.78       295
+
+avg / total       0.78      0.78      0.78       594
+
+----------------------------
+--------- both improved end ------------
+
+iteration count #:  45
+List size:  154
+0.622807017544
+0.784916201117
+iteration count #:  46
+List size:  152
+0.614035087719
+0.77374301676
+iteration count #:  47
+List size:  163
+0.616959064327
+0.787709497207
+iteration count #:  48
+List size:  158
+0.605263157895
+0.796089385475
+iteration count #:  49
+List size:  153
+0.599415204678
+0.787709497207

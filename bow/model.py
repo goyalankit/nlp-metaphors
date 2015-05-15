@@ -303,8 +303,8 @@ for word in STOP_WORDS:
     improves_both[word] = 0
 
 
-BASE_LINE_SEEN = 0.6880
-BASE_LINE_UNSEEN = 0.7740
+BASE_LINE_UNSEEN = 0.6198
+BASE_LINE_SEEN = 0.8016
 
 parameter_objects = []
 
@@ -321,16 +321,29 @@ for i in range(0,50):
     if seen_accuracy > BASE_LINE_SEEN:
         increment_counts(improves_seen, rlist)
 
-
     if unseen_accuracy > BASE_LINE_SEEN:
         increment_counts(improves_unseen, rlist)
 
-#    if ((seen_accuracy > BASE_LINE_SEEN) & (unseen_accuracy > BASE_LINE_UNSEEN)):
-    pobj = Parameters(rlist, seen_accuracy, unseen_accuracy)
-    pobj.word_list = rlist
-    pobj.seen_accuracy = seen_accuracy
-    pobj.unseen_accuracy = unseen_accuracy
-    parameter_objects.append(pobj)
+    if ((seen_accuracy > BASE_LINE_SEEN) & (unseen_accuracy > BASE_LINE_UNSEEN)):
+        print '----------- both improved start-----------\n'
+        LEX = False
+        USE_DEV = False
+        PRINT_LEVEL = 'VERBOSE'
+
+        print '------ unseen ----'
+        model(rlist)
+        LEX = True
+        print '------ seen ----'
+        model(rlist)
+        increment_counts(improves_both, rlist)
+        pobj = Parameters(rlist, seen_accuracy, unseen_accuracy)
+        pobj.word_list = rlist
+        pobj.seen_accuracy = seen_accuracy
+        pobj.unseen_accuracy = unseen_accuracy
+        parameter_objects.append(pobj)
+        print "--------- both improved end ------------\n"
+        USE_DEV = True
+        PRINT_LEVEL = 'DEFAULT'
 
 with open('seen_improvement.pickle', 'wb') as f:
     pickle.dump(improves_seen, f, pickle.HIGHEST_PROTOCOL)
@@ -339,6 +352,9 @@ with open('unseen_improvement.pickle', 'wb') as f:
     pickle.dump(improves_unseen, f, pickle.HIGHEST_PROTOCOL)
 
 with open('both_improvement.pickle', 'wb') as f:
+    pickle.dump(improves_both, f, pickle.HIGHEST_PROTOCOL)
+
+with open('both_improvement_object.pickle', 'wb') as f:
     pickle.dump(parameter_objects, f, pickle.HIGHEST_PROTOCOL)
 # Check svm
 #text_clf = Pipeline([('vect', CountVectorizer()),
